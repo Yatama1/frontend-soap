@@ -10,15 +10,15 @@ export default function DashboardAdmin() {
     try {
       const raw = localStorage.getItem("user");
       if (raw) setAdminName(JSON.parse(raw).nama_admin || JSON.parse(raw).name || "Admin");
-    } catch {}
-    api.get("/dashboard").then(r => setStats(r.data || {})).catch(()=>{});
+    } catch { }
+    api.get("/dashboard").then(r => setStats(r.data || {})).catch(() => { });
   }, []);
 
   const cards = [
-    { title: "Member", count: stats.memberCount || 1234, icon: <Users size={26}/> , colorClass: "bg-blue-50" },
-    { title: "Proyek", count: stats.projectCount || 56, icon: <Building2 size={26}/> , colorClass: "bg-green-50" },
-    { title: "Surve", count: stats.surveyCount || 342, icon: <ClipboardList size={26}/> , colorClass: "bg-yellow-50" },
-    { title: "Properti", count: stats.propertyCount || 289, icon: <Home size={26}/> , colorClass: "bg-red-50" },
+    { title: "Member", count: stats.memberCount || 1234, icon: <Users size={26} />, colorClass: "bg-blue-50" },
+    { title: "Proyek", count: stats.projectCount || 56, icon: <Building2 size={26} />, colorClass: "bg-green-50" },
+    { title: "Surve", count: stats.surveyCount || 342, icon: <ClipboardList size={26} />, colorClass: "bg-yellow-50" },
+    { title: "Properti", count: stats.propertyCount || 289, icon: <Home size={26} />, colorClass: "bg-red-50" },
   ];
 
   const fmt = (n) => Number(n || 0).toLocaleString("id-ID");
@@ -42,13 +42,13 @@ export default function DashboardAdmin() {
                 <div className="text-2xl md:text-3xl font-bold text-gray-900 mt-1">{fmt(c.count)}</div>
               </div>
             </div>
-            <div className="text-sm text-green-600 hidden md:block">+{Math.floor(Math.random()*20)}%</div>
+            <div className="text-sm text-green-600 hidden md:block">+{Math.floor(Math.random() * 20)}%</div>
           </div>
         ))}
       </section>
 
       {/* Example main area to mimic screenshot white cards */}
-      
+
     </div>
   );
 }

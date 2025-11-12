@@ -34,7 +34,7 @@ export default function Navbar() {
               <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
             </>
           ) : (
-            <button onClick={() => navigate("/login")} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Login</button>
+            <button onClick={() => navigate("/login-member")} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Login</button>
           )}
         </div>
 

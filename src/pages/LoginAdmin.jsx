@@ -2,19 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
-export default function Login() {
+export default function LoginAdmin() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    // 🔒 Cegah user balik ke login jika sudah login
+    // 🔒 Cegah admin balik ke login
     useEffect(() => {
         const token = localStorage.getItem("token");
         const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-        if (token && user.source === "admin")  navigate("/admin/dashboard", { replace: true });
-        if (token && user.source === "member")  navigate("/member/dashboard", { replace: true });
+        if (token && user.source === "admin") navigate("/admin/dashboard", { replace: true });
     }, [navigate]);
 
     const handleLogin = async (e) => {
@@ -22,31 +21,23 @@ export default function Login() {
         setError("");
 
         try {
-            const res = await api.post("/auth/login", { email, password });
+            const res = await api.post("/auth/login-admin", { email, password });
 
             if (res.data?.token) {
-                // Simpan token & user
                 localStorage.setItem("token", res.data.token);
                 localStorage.setItem("user", JSON.stringify(res.data.user));
 
-                // 🧹 Bersihkan history agar tombol "back" tidak bisa kembali ke login
                 window.history.pushState(null, "", window.location.href);
                 window.addEventListener("popstate", function () {
                     window.history.pushState(null, "", window.location.href);
                 });
 
-                // Navigasi ke dashboard
-                const role = res.data.user.source;
-                if (role === "admin") {
-                    navigate("/admin/dashboard", { replace: true });
-                } else if (role === "member") {
-                    navigate("/member/dashboard", { replace: true });
-                }
+                navigate("/admin/dashboard", { replace: true });
             } else {
                 setError(res.data.message || "Login gagal");
             }
         } catch (err) {
-            console.error("Error saat login:", err);
+            console.error("Error login admin:", err);
             setError(err.response?.data?.message || "Terjadi kesalahan koneksi ke server");
         }
     };
