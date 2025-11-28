@@ -33,10 +33,11 @@ export default function LayoutMember() {
     };
 
     const menuItems = [
-        { name: "Home", path: "/member/dashboard", icon: LayoutDashboard },
-        { name: "Leads", path: "/member/leads", icon: Users },
-        { name: "Properti", path: "/member/properti-saya", icon: Building2 },
-        { name: "Laporan", path: "/member/laporan", icon: Home },
+        { name: "Home", path: "/leader/dashboard", icon: LayoutDashboard },
+        { name: "Leads", path: "/leader/leads", icon: Users },
+        { name: "Members", path: "/leader/members", icon: Users },
+        { name: "Properti", path: "/leader/properti-saya", icon: Building2 },
+        { name: "Laporan", path: "/leader/laporan", icon: Home },
     ];
 
     return (

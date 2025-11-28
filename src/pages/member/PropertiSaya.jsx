@@ -11,7 +11,7 @@ export default function PropertiSaya() {
   useEffect(() => {
     const fetchProperti = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/properti");
+        const response = await fetch("http://localhost:5000/api/rumah");
         if (!response.ok) throw new Error("Gagal memuat data properti");
         const data = await response.json();
 
@@ -35,15 +35,15 @@ export default function PropertiSaya() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-6 text-red-600">Data Properti</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-black">Data Properti</h1>
 
       {propertiList.length === 0 ? (
-        <p className="text-gray-400">Belum ada data properti.</p>
+        <p className="text-gray-500">Belum ada data properti.</p>
       ) : (
-        <div className="overflow-x-auto bg-gray-900 shadow rounded-lg">
+        <div className="overflow-x-auto bg-gray-50 shadow rounded-lg">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-800 text-gray-400">
+              <tr className="bg-gray-50 text-black">
                 <th className="p-3 border-b">Nama Properti</th>
                 <th className="p-3 border-b">Image</th>
                 <th className="p-3 border-b">Tipe Rumah</th>
@@ -53,20 +53,20 @@ export default function PropertiSaya() {
             </thead>
             <tbody>
               {propertiList.map((prop) => (
-                <tr key={prop.id_properti} className="border-b hover:bg-gray-950">
-                  <td className="px-4 py-2 font-semibold text-gray-300">{prop.nama_properti}</td>
-                  <td className="px-4 py-2 text-gray-300">{prop.image ? (
+                <tr key={prop.id_properti} className="border-b hover:bg-gray-50">
+                  <td className="px-4 py-2 font-semibold text-black">{prop.nama_properti}</td>
+                  <td className="px-4 py-2 text-black">{prop.image ? (
                     <img src={prop.image} alt={prop.nama_properti} className="w-20 h-20 object-cover rounded" />
                   ) : (
                     <p className="text-gray-300">Tidak ada gambar</p>
                   )}</td>
-                  <td className="px-4 py-2 text-gray-300">{prop.Rumah?.tipe_rumah || "-"}</td>
-                  <td className="px-4 py-2 font-semibold text-gray-300">
+                  <td className="px-4 py-2 text-black">{prop.Rumah?.tipe_rumah || "-"}</td>
+                  <td className="px-4 py-2 font-semibold text-black">
                     {prop.Rumah?.harga
                       ? `Rp ${Number(prop.Rumah.harga).toLocaleString("id-ID")}`
                       : "-"}
                   </td>
-                  <td className="px-4 py-2 text-center text-gray-300">
+                  <td className="px-4 py-2 text-center text-black">
                     <Link
                       to={`/member/properti/${prop.id_properti}`}
                       className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"

@@ -1,74 +1,101 @@
-import { Routes, Route } from "react-router-dom";
+// src/App.jsx
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
-import LoginAdmin from "./pages/LoginAdmin";
-import LoginMember from "./pages/LoginMember";
+import Login from "./pages/Login"; // <-- halaman login tunggal
 import ProtectedRoute from "./middleware/ProtectedRoute";
+import PropertiDetail from "./pages/PropertiDetail";
 
-// Admin
+/* Admin */
 import AdminDashboard from "./pages/admin/DashboardAdmin";
 import LayoutAdmin from "./layouts/AdminLayout";
+import MemberPage from "./pages/admin/MemberPage";
 
-// Leader
+/* Leader */
 import LeaderDashboard from "./pages/leader/DashboardLeader";
 import LayoutLeader from "./layouts/LayoutLeader";
+import LeaderMembers from "./pages/leader/LeaderMembers";
+import LeaderLeads from "./pages/leader/LeaderLeads";
 
-// Senior Leader
+/* Senior Leader */
 import SeniorDashboard from "./pages/senior/DashboardSenior";
 import LayoutSenior from "./layouts/LayoutSenior";
 
-// Member
+/* Member */
 import MemberDashboard from "./pages/member/DashboardMember";
 import MemberProfile from "./pages/member/MemberProfile";
 import LayoutMember from "./layouts/LayoutMember";
 import LeadsMember from "./pages/member/LeadsMember";
 import PropertiSaya from "./pages/member/PropertiSaya";
+import LeaderMember from "./pages/member/LeaderMember";
+
+/* AuthProvider (AuthContext) */
+import { AuthProvider } from "./middleware/AuthProvider";
 
 export default function App() {
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<Home />} />
-      <Route path="/login-admin" element={<LoginAdmin />} />
-      <Route path="/login-member" element={<LoginMember />} />
+    // Bungkus seluruh Routes dengan AuthProvider agar context tersedia untuk ProtectedRoute & komponen lain
+    <AuthProvider>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
 
-      {/* --- Admin --- */}
-      <Route
-        element={<ProtectedRoute allowedRoles={["admin"]} />}
-      >
-        <Route element={<LayoutAdmin />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        </Route>
-      </Route>
+        {/* redirect old login paths to unified login */}
+        <Route path="/login-admin" element={<Navigate to="/login" replace />} />
+        <Route path="/login-member" element={<Navigate to="/login" replace />} />
 
-      {/* --- Leader --- */}
-      <Route
-        element={<ProtectedRoute allowedRoles={["leader"]} />}
-      >
-        <Route element={<LayoutLeader />}>
-          <Route path="/leader/dashboard" element={<LeaderDashboard />} />
-        </Route>
-      </Route>
+        {/* Unauthorized (tetap ada sesuai struktur Anda) */}
+        <Route
+          path="/unauthorized"
+          element={
+            <div className="p-6 text-center">
+              <h2 className="text-xl font-semibold mb-2">403 — Akses ditolak</h2>
+              <p>Anda tidak memiliki izin untuk mengakses halaman ini.</p>
+            </div>
+          }
+        />
 
-      {/* --- Senior Leader --- */}
-      <Route
-        element={<ProtectedRoute allowedRoles={["senior leader"]} />}
-      >
-        <Route element={<LayoutSenior />}>
-          <Route path="/senior/dashboard" element={<SeniorDashboard />} />
+        {/* --- Admin --- */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route element={<LayoutAdmin />}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/member" element={<MemberPage />} />
+          </Route>
         </Route>
-      </Route>
 
-      {/* --- Member --- */}
-      <Route
-        element={<ProtectedRoute allowedRoles={["member"]} />}
-      >
-        <Route element={<LayoutMember />}>
-          <Route path="/member/dashboard" element={<MemberDashboard />} />
-          <Route path="/member/profile" element={<MemberProfile />} />
-          <Route path="/member/leads" element={<LeadsMember />} />
-          <Route path="/member/properti-saya" element={<PropertiSaya />} />
+        {/* --- Leader --- */}
+        <Route element={<ProtectedRoute allowedRoles={["leader"]} />}>
+          <Route element={<LayoutLeader />}>
+            <Route path="/leader/dashboard" element={<LeaderDashboard />} />
+            <Route path="/leader/members" element={<LeaderMembers />} />
+            <Route path="/leader/leads" element={<LeaderLeads />} />
+          </Route>
         </Route>
-      </Route>
-    </Routes>
+
+        {/* --- Senior Leader --- */}
+        <Route element={<ProtectedRoute allowedRoles={["senior leader"]} />}>
+          <Route element={<LayoutSenior />}>
+            <Route path="/senior/dashboard" element={<SeniorDashboard />} />
+          </Route>
+        </Route>
+
+        {/* --- Member --- */}
+        <Route element={<ProtectedRoute allowedRoles={["member"]} />}>
+          <Route element={<LayoutMember />}>
+            <Route path="/member/dashboard" element={<MemberDashboard />} />
+            <Route path="/member/profile" element={<MemberProfile />} />
+            <Route path="/member/leads" element={<LeadsMember />} />
+            <Route path="/member/properti-saya" element={<PropertiSaya />} />
+            <Route path="/member/leadermember" element={<LeaderMember />} />
+          </Route>
+        </Route>
+
+        {/* Public property detail */}
+        <Route path="/properti/:id" element={<PropertiDetail />} />
+
+        {/* fallback */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </AuthProvider>
   );
 }

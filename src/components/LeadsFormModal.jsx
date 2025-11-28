@@ -26,15 +26,26 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
   const [errorMsg, setErrorMsg] = useState(null);
   const [notif, setNotif] = useState({ show: false, message: "", type: "success" });
 
-  // 🧠 Ambil member dari localStorage
+  // Ambil member dari localStorage
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const id_member = currentUser?.id_member;
+  const id_member = currentUser?.id_member || currentUser?.id || null;
 
   useEffect(() => {
     if (!id_member) {
       console.warn("⚠️ Tidak ada id_member di localStorage. Pastikan login menyimpan user!");
     }
   }, [id_member]);
+
+  useEffect(() => {
+    // saat cabuy berubah (ketika edit dibuka), sync form
+    setFormData({
+      nama_cabuy: cabuy?.nama_cabuy || "",
+      kontak: cabuy?.kontak || "",
+      tanggal_follow_up: cabuy?.tanggal_follow_up ? formatDateForInput(cabuy.tanggal_follow_up) : "",
+      tanggal_masuk: cabuy?.tanggal_masuk ? formatDateForInput(cabuy.tanggal_masuk) : "",
+      status: cabuy?.status || "Baru",
+    });
+  }, [cabuy]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,7 +67,7 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
     }
 
     const payload = {
-      id_member, // otomatis dari login
+      id_member,
       nama_cabuy: formData.nama_cabuy,
       kontak: formData.kontak,
       status: formData.status || "Baru",
@@ -76,16 +87,18 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
         setNotif({ show: true, message: "✅ Leads berhasil ditambahkan!", type: "success" });
       }
 
+      // panggil callback dari parent untuk refresh
       onSaved?.();
       setTimeout(() => {
         setNotif({ show: false });
         onClose?.();
-      }, 1800);
+      }, 1100);
     } catch (err) {
       console.error("Gagal menyimpan data leads:", err);
+      const serverMsg = err?.response?.data?.message || err?.response?.data?.error || null;
       setNotif({
         show: true,
-        message: err.response?.data?.error || "❌ Terjadi kesalahan saat menyimpan!",
+        message: serverMsg || "❌ Terjadi kesalahan saat menyimpan!",
         type: "error",
       });
       setTimeout(() => setNotif({ show: false }), 2000);
@@ -96,7 +109,7 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
 
   return (
     <>
-      {/* 🟥 Modal utama form */}
+      {/* Modal utama form */}
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-40">
         <div className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg p-6 text-gray-200">
           <h3 className="text-2xl font-bold mb-6 text-center text-red-500">
@@ -159,6 +172,7 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
               >
                 <option value="Baru">Baru</option>
                 <option value="Follow Up">Follow Up</option>
+                <option value="Survey">Survey</option>
                 <option value="Closing">Closing</option>
                 <option value="Lost">Lost</option>
               </select>
@@ -171,6 +185,7 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
                 type="button"
                 onClick={onClose}
                 className="px-5 py-2 rounded-lg bg-gray-800 border border-gray-700"
+                disabled={submitting}
               >
                 Batal
               </button>
@@ -186,7 +201,7 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
         </div>
       </div>
 
-      {/* 🟢 Modal Notifikasi */}
+      {/* Modal Notifikasi */}
       <NotificationModal
         show={notif.show}
         message={notif.message}
