@@ -12,7 +12,7 @@ export default function LayoutMember() {
         const token = localStorage.getItem("token");
 
         if (!token || !storedUser) {
-            navigate("/login-member", { replace: true });
+            navigate("/login", { replace: true });
             return;
         }
 
@@ -29,13 +29,13 @@ export default function LayoutMember() {
     const logout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        navigate("/login-member", { replace: true });
+        navigate("/login", { replace: true });
     };
 
     const menuItems = [
         { name: "Home", path: "/leader/dashboard", icon: LayoutDashboard },
-        { name: "Leads", path: "/leader/leads", icon: Users },
         { name: "Members", path: "/leader/members", icon: Users },
+        { name: "Leads", path: "/leader/leads", icon: Users },
         { name: "Properti", path: "/leader/properti-saya", icon: Building2 },
         { name: "Laporan", path: "/leader/laporan", icon: Home },
     ];

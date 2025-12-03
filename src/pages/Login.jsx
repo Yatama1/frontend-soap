@@ -68,43 +68,98 @@ export default function Login() {
     }
   };
 
-  return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form onSubmit={handleLogin} className="bg-white shadow rounded-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
+    return (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-indigo-400 to-sky-300">
+    {/* background subtle overlay for depth */}
+    <div className="absolute inset-0 pointer-events-none" style={{ mixBlendMode: "multiply", opacity: 0.06 }} />
 
+    <div className="relative z-10 w-full max-w-sm px-6">
+      {/* Card */}
+      <div className="bg-white rounded-2xl p-8 pt-6 shadow-[0_30px_60px_rgba(2,6,23,0.25)]">
+        {/* Header */}
+        <div className="mb-4 text-center">
+          <h2 className="text-2xl font-extrabold text-white/0 invisible">hidden</h2>
+          <div className="text-left">
+            <h3 className="text-2xl font-bold text-slate-800">Login</h3>
+            <p className="text-sm text-gray-400">Hello! let's get started</p>
+          </div>
+        </div>
+
+        {/* Error */}
         {errorMsg && (
-          <div className="bg-red-100 text-red-600 p-2 mb-4 rounded-md text-center">
+          <div className="bg-red-50 text-red-700 p-2 rounded-md mb-3 text-sm text-center">
             {errorMsg}
           </div>
         )}
 
-        <label className="block mb-2">Email</label>
-        <input
-          className="w-full border p-2 rounded mb-4"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Masukkan email"
-        />
+        <form onSubmit={handleLogin} className="space-y-4">
+          {/* Username */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-2">Username</label>
+            <div className="flex items-center rounded-full border border-gray-200 px-3 py-2 bg-white shadow-sm">
+              {/* icon */}
+              <svg className="w-4 h-4 text-gray-300 mr-3" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 21c0-3.866 3.582-7 9-7s9 3.134 9 7" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <input
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Username"
+                className="w-full outline-none text-sm placeholder-gray-300"
+                aria-label="username"
+              />
+            </div>
+          </div>
 
-        <label className="block mb-2">Password</label>
-        <input
-          className="w-full border p-2 rounded mb-4"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Masukkan password"
-        />
+          {/* Password */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-2">Password</label>
+            <div className="flex items-center rounded-full border border-gray-200 px-3 py-2 bg-white shadow-sm">
+              {/* icon lock */}
+              <svg className="w-4 h-4 text-gray-300 mr-3" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <rect x="3" y="11" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="1.1"/>
+                <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+              </svg>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full outline-none text-sm placeholder-gray-300"
+                aria-label="password"
+              />
+              {/* optional eye icon (non-functional) */}
+              <svg className="w-4 h-4 text-gray-300 ml-3" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.1" />
+              </svg>
+            </div>
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-        >
-          {loading ? "Memproses..." : "Masuk"}
-        </button>
-      </form>
+          {/* button */}
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-full text-white font-semibold bg-gradient-to-r from-indigo-500 via-purple-500 to-sky-400 shadow-lg hover:scale-[0.995] active:scale-[0.99] transition-transform disabled:opacity-60 flex items-center justify-center gap-3"
+            >
+              {/* small circle icon */}
+            <span className="inline-block w-5 h-5 bg-white/20 rounded-full" />
+            {loading ? "Memproses..." : "Login"}
+            </button>
+          </div>
+
+          <div className="text-center mt-3">
+            <a href="/forgot-password" className="text-sm text-indigo-500 hover:underline">Forgot password?</a>
+          </div>
+        </form>
+      </div>
     </div>
-  );
+  </div>
+);
+
+
+
 }

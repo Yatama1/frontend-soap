@@ -6,27 +6,43 @@ export default function LayoutMember() {
     const navigate = useNavigate();
     const [memberName, setMemberName] = useState("");
 
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem("user");
-            if (raw) setMemberName(JSON.parse(raw).nama || JSON.parse(raw).name || "Member");
-        } catch { setMemberName("Member"); }
-        // simple auth check (keep your existing logic)
-        const token = localStorage.getItem("token");
-        if (!token) navigate("/login-member", { replace: true });
-    }, [navigate]);
+   useEffect(() => {
+    try {
+        const raw = localStorage.getItem("user");
+        if (raw) {
+            const user = JSON.parse(raw);
+
+            // Ambil nama berdasarkan key yang tersedia
+            const nama =
+                user.nama_member ||
+                user.nama ||
+                user.name ||
+                "Pengguna";
+
+            setMemberName(nama);
+        }
+    } catch {
+        setMemberName("Pengguna");
+    }
+
+    // Cek token
+    const token = localStorage.getItem("token");
+    if (!token) navigate("/login", { replace: true });
+}, [navigate]);
+
 
     const logout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        navigate("/login-member", { replace: true });
+        navigate("/login", { replace: true });
     };
 
     const menuItems = [
-        { name: "Home", path: "/member/dashboard", icon: LayoutDashboard },
-        { name: "Leads", path: "/member/leads", icon: Users },
-        { name: "Properti", path: "/member/properti-saya", icon: Building2 },
-        { name: "Laporan", path: "/member/laporan", icon: Home },
+        { name: "Home", path: "/senior/dashboard", icon: LayoutDashboard },
+        { name: "Leader", path: "/senior/leader", icon: Users },
+        { name: "Member Leader", path: "/senior/member-leader", icon: Users },
+        { name: "Properti", path: "/senior/properti-saya", icon: Building2 },
+        { name: "Laporan", path: "/senior/laporan", icon: Home },
     ];
 
     return (

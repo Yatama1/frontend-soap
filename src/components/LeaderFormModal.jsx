@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-// baseURL fleksibel (pakai VITE_API_URL / CRA env jika ada), pastikan selalu ada /api di akhir
+// baseURL fleksibel, pastikan selalu berujung /api
 const base = import.meta?.env?.VITE_API_URL || (typeof process !== "undefined" && process.env?.REACT_APP_API_URL) || "http://localhost:5000";
 const baseURL = base.endsWith("/api") ? base : `${base.replace(/\/$/, "")}/api`;
 
@@ -18,79 +18,115 @@ api.interceptors.request.use((config) => {
 });
 
 export default function MemberFormModal({ onClose, onSaved, member }) {
-  // DETEKSI EDIT: lebih ketat -> hanya true kalau ada objek member dengan id_member / id
+  // jika prop member berisi id_member atau id -> edit mode
   const isEdit = !!(member && (member.id_member || member.id));
+
+  // current user (pembuat)
+  const currentUser = (() => {
+    try {
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
+  const currentRole = (currentUser?.role || currentUser?.jabatan || "").toString().toLowerCase();
+  const leaderId = currentUser?.id_member || currentUser?.id || null;
 
   const [leaders, setLeaders] = useState([]);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const [formData, setFormData] = useState({
-    nama_member: member?.nama_member || member?.nama || "",
-    kontak: member?.kontak || "",
-    jabatan: member?.jabatan || (member?.role) || "member",
-    leader_id: member?.id_leader ?? member?.leader_id ?? "",
+    nama: member?.nama_member || member?.nama || "",
     email: member?.email || "",
+    kontak: member?.kontak || "",
+    jabatan: member?.jabatan || member?.role || "member",
+    id_leader: member?.id_leader ?? member?.leader_id ?? "",
     password: "",
   });
 
-  // get current user role (to hide leader select when current user is a leader)
-  const getCurrentRole = () => {
-    try {
-      const raw = localStorage.getItem("user");
-      if (!raw) return null;
-      const u = JSON.parse(raw);
-      return (u.role || u.jabatan || "").toString().toLowerCase();
-    } catch {
-      return null;
-    }
-  };
-  const currentRole = getCurrentRole();
+  useEffect(() => {
+    // sync when member prop changes (useful for edit)
+    setFormData({
+      nama: member?.nama_member || member?.nama || "",
+      email: member?.email || "",
+      kontak: member?.kontak || "",
+      jabatan: member?.jabatan || member?.role || "member",
+      id_leader: member?.id_leader ?? member?.leader_id ?? "",
+      password: "",
+    });
+  }, [member]);
 
   useEffect(() => {
-    // ambil daftar leader hanya jika pembuat bukan leader (leader biasanya tidak memilih leader)
+    // jika pembuat bukan leader, ambil daftar leader untuk select
     if (currentRole === "leader") return;
 
     let mounted = true;
-    api.get("/member?jabatan=leader")
-      .then((res) => {
+    api.get("/member", { params: { jabatan: "leader" } })
+      .then(res => {
         if (!mounted) return;
-        // backend bisa mengembalikan array langsung atau { members: [...] }
-        let list = [];
-        if (Array.isArray(res.data)) list = res.data;
-        else if (Array.isArray(res.data.members)) list = res.data.members;
-        else if (Array.isArray(res.data.data)) list = res.data.data;
+        // backend shape bisa bervariasi
+        const d = res?.data;
+        const list = Array.isArray(d) ? d : (Array.isArray(d?.members) ? d.members : (Array.isArray(d?.data) ? d.data : []));
         setLeaders(list);
       })
-      .catch((err) => {
-        console.warn("Gagal memuat leader:", err?.response?.data || err?.message);
+      .catch(err => {
+        // fallback: coba plural /members
+        api.get("/members", { params: { jabatan: "leader" } })
+          .then(res2 => {
+            if (!mounted) return;
+            const d2 = res2?.data;
+            const list2 = Array.isArray(d2) ? d2 : (Array.isArray(d2?.members) ? d2.members : (Array.isArray(d2?.data) ? d2.data : []));
+            setLeaders(list2);
+          })
+          .catch(() => {
+            console.warn("Gagal memuat leader (ignored):", err?.response?.data || err?.message);
+          });
       });
 
     return () => { mounted = false; };
   }, [currentRole]);
-
-  useEffect(() => {
-    // bila prop member berubah (mis. saat edit), sinkronkan formData (berguna ketika modal buka edit)
-    setFormData({
-      nama_member: member?.nama_member || member?.nama || "",
-      kontak: member?.kontak || "",
-      jabatan: member?.jabatan || (member?.role) || "member",
-      leader_id: member?.id_leader ?? member?.leader_id ?? "",
-      email: member?.email || "",
-      password: "",
-    });
-  }, [member]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(p => ({ ...p, [name]: value }));
   };
 
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const validate = () => {
-    if (!formData.nama_member?.trim()) return "Nama wajib diisi.";
+    if (!formData.nama?.trim()) return "Nama wajib diisi.";
     if (!formData.email?.trim()) return "Email wajib diisi.";
-    if (!isEdit && !formData.password) return "Password wajib diisi untuk user baru.";
+    if (!validateEmail(formData.email)) return "Format email tidak valid.";
+    if (!isEdit && (!formData.password || formData.password.length < 6)) return "Password wajib (minimal 6 karakter).";
+    if (isEdit && formData.password && formData.password.length < 6) return "Password minimal 6 karakter.";
     return null;
+  };
+
+  const tryPostWithPluralFallback = async (payload) => {
+    try {
+      return await api.post("/member", payload);
+    } catch (err) {
+      // jika 404 -> coba /members
+      const status = err?.response?.status;
+      if (status === 404) {
+        return await api.post("/members", payload);
+      }
+      throw err;
+    }
+  };
+
+  const tryPutWithPluralFallback = async (id, payload) => {
+    try {
+      return await api.put(`/member/${id}`, payload);
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 404) {
+        return await api.put(`/members/${id}`, payload);
+      }
+      throw err;
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -98,40 +134,52 @@ export default function MemberFormModal({ onClose, onSaved, member }) {
     setErrorMsg("");
     const v = validate();
     if (v) return setErrorMsg(v);
-    setSaving(true);
 
+    setSaving(true);
     try {
+      // build payload sesuai backend (nama, email, kontak, jabatan, id_leader, password)
       const payload = {
-        nama: formData.nama_member,
+        nama: formData.nama,
         email: formData.email,
         kontak: formData.kontak || undefined,
         jabatan: formData.jabatan,
       };
 
-      // password dikirim saat create atau bila diisi saat edit
-      if (!isEdit || (isEdit && formData.password?.trim())) {
+      // password only when creating or when provided in edit
+      if (!isEdit || (isEdit && formData.password && formData.password.trim())) {
         payload.password = formData.password;
       }
 
-      // hanya kirim id_leader bila pembuat bukan leader (leader assignment dilakukan server-side)
-      if (currentRole !== "leader") {
-        // Map key sesuai backend jika backend mengharapkan id_leader atau leader_id
-        if (formData.leader_id) payload.id_leader = Number(formData.leader_id);
+      // bila pembuat adalah leader, kita bantu set id_leader = leaderId (server juga seharusnya enforce)
+      if (currentRole === "leader") {
+        if (leaderId) payload.id_leader = leaderId;
+      } else {
+        // pembuat bukan leader: kirim id_leader jika dipilih (nullable)
+        if (formData.id_leader) payload.id_leader = Number(formData.id_leader);
       }
 
       if (isEdit) {
         const id = member.id_member ?? member.id;
-        await api.put(`/member/${id}`, payload);
+        await tryPutWithPluralFallback(id, payload);
       } else {
-        await api.post("/member", payload);
+        await tryPostWithPluralFallback(payload);
       }
 
       onSaved && onSaved();
       onClose && onClose();
     } catch (err) {
-      console.error("Gagal menyimpan data member:", err);
-      const serverMsg = err?.response?.data?.message || err?.response?.data || err?.message || "Terjadi kesalahan";
-      setErrorMsg(typeof serverMsg === "string" ? serverMsg : JSON.stringify(serverMsg));
+      console.error("Gagal simpan member:", err);
+      // tampilkan pesan server bila ada, kalau HTML tampilkan ringkas
+      const data = err?.response?.data;
+      let msg = "Terjadi kesalahan saat menyimpan.";
+      if (data) {
+        if (typeof data === "string") {
+          // kadang server kirim HTML; ambil baris pertama
+          msg = data.replace(/\s+/g, " ").slice(0, 300);
+        } else if (data?.message) msg = data.message;
+        else msg = JSON.stringify(data).slice(0, 300);
+      } else if (err?.message) msg = err.message;
+      setErrorMsg(msg);
     } finally {
       setSaving(false);
     }
@@ -140,17 +188,17 @@ export default function MemberFormModal({ onClose, onSaved, member }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
-        <h3 className="text-xl font-semibold mb-4">{isEdit ? "Edit Member" : "Tambah Member"}</h3>
+        <h3 className="text-xl font-semibold mb-4">{isEdit ? "Edit Member" : "Tambah Leader"}</h3>
 
-        {errorMsg && <div className="mb-3 text-sm text-red-700 bg-red-50 p-2 rounded">{errorMsg}</div>}
+        {errorMsg && <div className="mb-3 text-sm text-red-700 bg-red-50 p-2 rounded break-words">{errorMsg}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-600">Nama</label>
             <input
               type="text"
-              name="nama_member"
-              value={formData.nama_member}
+              name="nama"
+              value={formData.nama}
               onChange={handleChange}
               required
               className="w-full border px-3 py-2 rounded"
@@ -193,20 +241,20 @@ export default function MemberFormModal({ onClose, onSaved, member }) {
             </select>
           </div>
 
-          {/* Leader select hanya tampil kalau pembuat bukan leader dan jabatan = member */}
+          {/* pilih leader hanya kalau creator bukan leader dan jabatan = member */}
           {currentRole !== "leader" && formData.jabatan === "member" && (
             <div>
               <label className="block text-sm font-medium text-gray-600">Leader</label>
               <select
-                name="leader_id"
-                value={formData.leader_id ?? ""}
+                name="id_leader"
+                value={formData.id_leader ?? ""}
                 onChange={handleChange}
                 className="w-full border px-3 py-2 rounded"
               >
                 <option value="">Tidak ada</option>
                 {leaders.map((l) => (
                   <option key={l.id_member ?? l.id} value={l.id_member ?? l.id}>
-                    {(l.nama_member || l.nama || l.name) + " — " + (l.jabatan || l.role)}
+                    {(l.nama || l.nama_member || l.name) + " — " + (l.jabatan || l.role)}
                   </option>
                 ))}
               </select>
@@ -223,7 +271,6 @@ export default function MemberFormModal({ onClose, onSaved, member }) {
               value={formData.password}
               onChange={handleChange}
               placeholder={isEdit ? "Kosongkan jika tidak ingin ganti" : ""}
-              {...(!isEdit ? { required: true } : {})}
               className="w-full border px-3 py-2 rounded"
             />
           </div>

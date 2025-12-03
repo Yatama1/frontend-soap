@@ -21,7 +21,7 @@ export default function LayoutMember() {
     const token = localStorage.getItem("token");
 
     if (!token || !storedUser) {
-      navigate("/login-member", { replace: true });
+      navigate("/login", { replace: true });
       return;
     }
 
@@ -48,7 +48,7 @@ export default function LayoutMember() {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    navigate("/login-member", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   const menuItems = [

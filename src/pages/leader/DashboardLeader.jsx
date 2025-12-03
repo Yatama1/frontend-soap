@@ -48,7 +48,7 @@ export default function DashboardLeader() {
   return (
     <div className="min-h-[70vh]">
       <header className="mb-6">
-        <h1 className="text-3xl font-extrabold text-gray-800">Dashboard Senior Leader</h1>
+        <h1 className="text-3xl font-extrabold text-gray-800">Dashboard Leader</h1>
         <p className="text-sm text-gray-500 mt-1">Selamat datang kembali, <span className="font-medium">{leaderName}</span>!</p>
       </header>
 

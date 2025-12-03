@@ -15,11 +15,12 @@ export default function DashboardLeader() {
     }, []);
 
     const cards = [
-        { title: "Leads", count: stats.cabuyCount || 1234, icon: <Users size={26} />, colorClass: "bg-blue-50" },
-        { title: "Proyek", count: stats.projectCount || 56, icon: <Building2 size={26} />, colorClass: "bg-green-50" },
-        { title: "Surve", count: stats.surveyCount || 342, icon: <ClipboardList size={26} />, colorClass: "bg-yellow-50" },
-        { title: "Properti", count: stats.propertyCount || 289, icon: <Home size={26} />, colorClass: "bg-red-50" },
-    ];
+    { title: "Leader", count: stats.leaderCount ?? 0, icon: <Users size={26} />, colorClass: "bg-blue-50" },
+    { title: "Proyek", count: stats.projectCount ?? 0, icon: <Building2 size={26} />, colorClass: "bg-green-50" },
+    { title: "Surve", count: stats.surveyCount ?? 0, icon: <ClipboardList size={26} />, colorClass: "bg-yellow-50" },
+    { title: "Properti", count: stats.propertyCount ?? 0, icon: <Home size={26} />, colorClass: "bg-red-50" },
+];
+
 
     const fmt = (n) => Number(n || 0).toLocaleString("id-ID");
 

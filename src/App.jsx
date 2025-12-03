@@ -16,9 +16,12 @@ import LayoutLeader from "./layouts/LayoutLeader";
 import LeaderMembers from "./pages/leader/LeaderMembers";
 import LeaderLeads from "./pages/leader/LeaderLeads";
 
+
 /* Senior Leader */
 import SeniorDashboard from "./pages/senior/DashboardSenior";
 import LayoutSenior from "./layouts/LayoutSenior";
+import Leader from "./pages/senior/Leader";
+import MemberLeader from "./pages/senior/MemberLeader";
 
 /* Member */
 import MemberDashboard from "./pages/member/DashboardMember";
@@ -76,6 +79,8 @@ export default function App() {
         <Route element={<ProtectedRoute allowedRoles={["senior leader"]} />}>
           <Route element={<LayoutSenior />}>
             <Route path="/senior/dashboard" element={<SeniorDashboard />} />
+            <Route path="/senior/leader" element={<Leader/>} />
+            <Route path="/senior/member-leader" element={<MemberLeader/>} />
           </Route>
         </Route>
 
