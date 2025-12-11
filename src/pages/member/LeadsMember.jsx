@@ -1,39 +1,42 @@
-import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import LeadsFormModal from "../../components/LeadsFormModal";
-import api from "../../api/apiClient";
+import React, { useEffect, useState } from "react";
+import { 
+  Users, UserPlus, Search, RefreshCw, 
+  Edit, Trash2, Phone, Filter, Calendar
+} from "lucide-react";
+// Sesuaikan path ke api client utama Anda
+import api from "../../api/apiClient"; 
+import LeadsFormModal from "../../components/LeadsFormModal"; 
 
 export default function LeadsMember() {
   const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("Semua");
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
 
-  // ✅ ambil data user yang login dari localStorage (TIDAK DIUBAH)
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-
-  // ✅ BARU: pastikan kita punya id member yang benar
-  //    kalau di auth kamu pakai "id", kita fallback ke user.id
-  const memberId = user.id_member || user.id; // ⬅️ DITAMBAHKAN
-
-  // 🔥 hanya ambil leads yang dimiliki member login
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      // ❌ SEBELUM:
-      // const res = await api.get(`/cabuy?member_id=${user.id}`);
+      const res = await api.get("/cabuy"); 
+      const rawData = res?.data?.data || res?.data || [];
+      
+      console.log("📦 Data Leads dari API:", rawData);
 
-      // ✅ SESUDAH: pakai memberId + params (lebih aman)
-      const res = await api.get("/cabuy", {
-        params: { member_id: memberId }, // ⬅️ INI YANG PENTING
-      });
+      const formatted = Array.isArray(rawData) ? rawData.map(item => ({
+        ...item,
+        id: item.id_cabuy || item.id, 
+        nama: item.nama_cabuy || item.nama,
+        kontak: item.kontak || "-",
+        status: item.status || "Baru",
+        tanggal_masuk: item.tanggal_masuk,
+        tanggal_follow_up: item.tanggal_follow_up
+      })) : [];
 
-      const payload = res?.data ?? [];
-      setLeads(Array.isArray(payload) ? payload : payload.data ?? []);
-    } catch (err) {
-      console.error("Gagal mengambil data leads:", err);
-      setLeads([]);
+      setLeads(formatted);
+    } catch (error) {
+      console.error("Gagal ambil leads:", error);
     } finally {
       setLoading(false);
     }
@@ -43,122 +46,139 @@ export default function LeadsMember() {
     fetchLeads();
   }, []);
 
-  const handleAdd = () => {
+  const handleDelete = async (id, nama) => {
+    if (!window.confirm(`Yakin hapus leads "${nama}"?`)) return;
+    try {
+      await api.delete(`/cabuy/${id}`);
+      setLeads(prev => prev.filter(l => l.id !== id));
+    } catch (error) {
+      alert("Gagal menghapus data.");
+    }
+  };
+
+  const openAddModal = () => {
     setSelectedLead(null);
     setIsModalOpen(true);
   };
 
-  const handleEdit = (cabuy) => {
-    setSelectedLead(cabuy);
+  const openEditModal = (lead) => {
+    setSelectedLead(lead);
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id_cabuy) => {
-    if (!window.confirm("Yakin ingin menghapus leads ini?")) return;
-
-    try {
-      setDeletingId(id_cabuy);
-      await api.delete(`/cabuy/${id_cabuy}`);
-      setLeads((prev) => prev.filter((c) => (c.id_cabuy ?? c.id) !== id_cabuy));
-    } catch (err) {
-      console.error("Gagal menghapus leads:", err);
-      alert("Gagal menghapus leads.");
-    } finally {
-      setDeletingId(null);
-    }
-  };
+  const filteredLeads = leads.filter(l => {
+    const term = searchTerm.toLowerCase();
+    const matchSearch = (l.nama || "").toLowerCase().includes(term) || 
+                        (l.kontak || "").includes(term);
+    const matchStatus = filterStatus === "Semua" || l.status === filterStatus;
+    return matchSearch && matchStatus;
+  });
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Data Leads</h2>
-        <button
-          onClick={handleAdd}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          <Plus size={18} /> Tambah Leads
-        </button>
+    <div className="p-6 bg-gray-50 min-h-screen font-sans">
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <Users className="text-blue-600" /> Leads Saya (CaBuY)
+          </h1>
+          <p className="text-gray-500 text-sm">Kelola calon pembeli properti Anda.</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={fetchLeads} className="p-2 bg-white border rounded hover:bg-gray-100 shadow-sm">
+            <RefreshCw size={20} className={loading ? "animate-spin text-blue-600" : "text-gray-600"} />
+          </button>
+          <button onClick={openAddModal} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 shadow-md">
+            <UserPlus size={18} /> Input Leads Baru
+          </button>
+        </div>
       </div>
 
-      <div className="overflow-x-auto bg-white shadow rounded-lg">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-blue-100 text-blue-900">
-              <th className="p-3 border-b">No</th>
-              <th className="p-3 border-b">Nama</th>
-              <th className="p-3 border-b">Telepon</th>
-              <th className="p-3 border-b">Tanggal Follow Up</th>
-              <th className="p-3 border-b">Tanggal Masuk</th>
-              <th className="p-3 border-b">Status</th>
-              <th className="p-3 border-b text-center">Aksi</th>
-            </tr>
-          </thead>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search size={18} className="absolute left-3 top-3.5 text-gray-400" />
+          <input 
+            type="text" placeholder="Cari nama atau no WA..." 
+            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="relative min-w-[200px]">
+          <Filter size={18} className="absolute left-3 top-3.5 text-gray-400" />
+          <select 
+            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white cursor-pointer"
+            value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="Semua">Semua Status</option>
+            <option value="Baru">Baru</option>
+            <option value="Follow Up">Follow Up</option>
+            <option value="Siap Survey">Siap Survey</option>
+            <option value="Booking">Booking</option>
+            <option value="Closing">Closing</option>
+            <option value="Lost">Lost</option>
+          </select>
+        </div>
+      </div>
 
-          <tbody>
-            {loading ? (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <td colSpan={7} className="text-center p-6">Memuat data...</td>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Nama Calon Pembeli</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Kontak & Tgl Masuk</th>
+                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Aksi</th>
               </tr>
-            ) : leads.length > 0 ? (
-              leads.map((cabuy, index) => {
-                const idCabuy = cabuy.id_cabuy ?? cabuy.id;
-                return (
-                  <tr key={idCabuy} className="hover:bg-gray-50">
-                    <td className="p-3 border-b">{index + 1}</td>
-                    <td className="p-3 border-b">{cabuy.nama_cabuy}</td>
-                    <td className="p-3 border-b">{cabuy.kontak}</td>
-                    <td className="p-3 border-b">
-                      {cabuy.tanggal_follow_up
-                        ? new Date(cabuy.tanggal_follow_up).toLocaleDateString("id-ID")
-                        : "-"}
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {loading ? (
+                <tr><td colSpan="4" className="p-8 text-center text-gray-400">Sedang memuat data...</td></tr>
+              ) : filteredLeads.length === 0 ? (
+                <tr><td colSpan="4" className="p-8 text-center text-gray-400">Belum ada data leads.</td></tr>
+              ) : (
+                filteredLeads.map((lead) => (
+                  <tr key={lead.id} className="hover:bg-blue-50/30 transition group">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-gray-900">{lead.nama}</div>
+                      <div className="text-xs text-gray-400">ID: {lead.id}</div>
                     </td>
-                    <td className="p-3 border-b">
-                      {cabuy.tanggal_masuk
-                        ? new Date(cabuy.tanggal_masuk).toLocaleDateString("id-ID")
-                        : "-"}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                        <Phone size={14} className="text-gray-400"/> {lead.kontak}
+                      </div>
+                      {lead.tanggal_masuk && (
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <Calendar size={12}/> {new Date(lead.tanggal_masuk).toLocaleDateString("id-ID")}
+                        </div>
+                      )}
                     </td>
-                    <td className="p-3 border-b">
-                      <span className="px-3 py-1 rounded-full text-sm">
-                        {cabuy.status}
+                    <td className="px-6 py-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700`}>
+                        {lead.status}
                       </span>
                     </td>
-                    <td className="p-3 border-b text-center">
-                      <button
-                        onClick={() => handleEdit(cabuy)}
-                        className="text-yellow-500 mr-3"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(idCabuy)}
-                        className="text-red-500"
-                        disabled={deletingId === idCabuy}
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openEditModal(lead)} className="p-2 text-amber-600 bg-amber-50 rounded-lg hover:bg-amber-100"><Edit size={16}/></button>
+                        <button onClick={() => handleDelete(lead.id, lead.nama)} className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"><Trash2 size={16}/></button>
+                      </div>
                     </td>
                   </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan={7} className="text-center p-4 text-gray-500 italic">
-                  Belum ada data Leads
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {isModalOpen && (
-        <LeadsFormModal
+        <LeadsFormModal 
+          cabuy={selectedLead}
           onClose={() => setIsModalOpen(false)}
           onSaved={() => {
+            fetchLeads(); 
             setIsModalOpen(false);
-            fetchLeads(); // ⬅️ reload lagi setelah tambah/edit
           }}
-          cabuy={selectedLead}
         />
       )}
     </div>

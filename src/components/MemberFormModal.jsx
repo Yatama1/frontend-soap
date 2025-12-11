@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-// baseURL fleksibel (pakai VITE_API_URL / CRA env jika ada), pastikan selalu ada /api di akhir
-const base = import.meta?.env?.VITE_API_URL || (typeof process !== "undefined" && process.env?.REACT_APP_API_URL) || "http://localhost:5000";
+// --- 1. KONFIGURASI AXIOS MANDIRI (Anti Error Import) ---
+const base = import.meta?.env?.VITE_API_URL || "http://localhost:5000";
 const baseURL = base.endsWith("/api") ? base : `${base.replace(/\/$/, "")}/api`;
 
 const api = axios.create({
@@ -17,68 +17,70 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// --- 2. HELPER: BONGKAR TOKEN (Untuk Cek Role) ---
+function getRoleFromToken() {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => 
+      '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+    ).join(''));
+    const decoded = JSON.parse(jsonPayload);
+    // Sesuaikan dengan isi token Anda: role atau jabatan
+    return (decoded.role || decoded.jabatan || "").toString().toLowerCase();
+  } catch (e) {
+    return null;
+  }
+}
+
 export default function MemberFormModal({ onClose, onSaved, member }) {
-  // DETEKSI EDIT: lebih ketat -> hanya true kalau ada objek member dengan id_member / id
   const isEdit = !!(member && (member.id_member || member.id));
+  const currentRole = getRoleFromToken();
 
   const [leaders, setLeaders] = useState([]);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   const [formData, setFormData] = useState({
-    nama_member: member?.nama_member || member?.nama || "",
-    kontak: member?.kontak || "",
-    jabatan: member?.jabatan || (member?.role) || "member",
-    leader_id: member?.id_leader ?? member?.leader_id ?? "",
+    nama: member?.nama_member || member?.nama || "",
     email: member?.email || "",
+    kontak: member?.kontak || "",
+    jabatan: member?.jabatan || member?.role || "member",
+    leader_id: member?.id_leader ?? member?.leader_id ?? "",
     password: "",
   });
 
-  // get current user role (to hide leader select when current user is a leader)
-  const getCurrentRole = () => {
-    try {
-      const raw = localStorage.getItem("user");
-      if (!raw) return null;
-      const u = JSON.parse(raw);
-      return (u.role || u.jabatan || "").toString().toLowerCase();
-    } catch {
-      return null;
-    }
-  };
-  const currentRole = getCurrentRole();
-
+  // --- AMBIL DAFTAR LEADER (Jika User Admin/Senior) ---
   useEffect(() => {
-    // ambil daftar leader hanya jika pembuat bukan leader (leader biasanya tidak memilih leader)
-    if (currentRole === "leader") return;
+    if (currentRole === "leader" || currentRole === "member") return;
 
-    let mounted = true;
-    api.get("/member?jabatan=leader")
+    // Fetch daftar member yang jabatannya 'leader'
+    // Endpoint ini mungkin perlu disesuaikan dengan backend Anda (misal: /members?jabatan=leader)
+    // Atau jika backend getMembers sudah otomatis filter, biarkan.
+    api.get("/members") 
       .then((res) => {
-        if (!mounted) return;
-        // backend bisa mengembalikan array langsung atau { members: [...] }
-        let list = [];
-        if (Array.isArray(res.data)) list = res.data;
-        else if (Array.isArray(res.data.members)) list = res.data.members;
-        else if (Array.isArray(res.data.data)) list = res.data.data;
-        setLeaders(list);
+        const data = res?.data?.members || res?.data || [];
+        // Filter hanya yang jabatannya leader
+        const leaderList = data.filter(m => m.jabatan === "leader");
+        setLeaders(leaderList);
       })
-      .catch((err) => {
-        console.warn("Gagal memuat leader:", err?.response?.data || err?.message);
-      });
-
-    return () => { mounted = false; };
+      .catch((err) => console.warn("Gagal load leader list:", err));
   }, [currentRole]);
 
+  // Sync Data Edit
   useEffect(() => {
-    // bila prop member berubah (mis. saat edit), sinkronkan formData (berguna ketika modal buka edit)
-    setFormData({
-      nama_member: member?.nama_member || member?.nama || "",
-      kontak: member?.kontak || "",
-      jabatan: member?.jabatan || (member?.role) || "member",
-      leader_id: member?.id_leader ?? member?.leader_id ?? "",
-      email: member?.email || "",
-      password: "",
-    });
+    if (member) {
+      setFormData({
+        nama: member.nama_member || member.nama || "",
+        email: member.email || "",
+        kontak: member.kontak || "",
+        jabatan: member.jabatan || "member",
+        leader_id: member.id_leader || "",
+        password: "",
+      });
+    }
   }, [member]);
 
   const handleChange = (e) => {
@@ -86,52 +88,47 @@ export default function MemberFormModal({ onClose, onSaved, member }) {
     setFormData(p => ({ ...p, [name]: value }));
   };
 
-  const validate = () => {
-    if (!formData.nama_member?.trim()) return "Nama wajib diisi.";
-    if (!formData.email?.trim()) return "Email wajib diisi.";
-    if (!isEdit && !formData.password) return "Password wajib diisi untuk user baru.";
-    return null;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
-    const v = validate();
-    if (v) return setErrorMsg(v);
-    setSaving(true);
 
+    if (!formData.nama?.trim()) return setErrorMsg("Nama wajib diisi.");
+    if (!formData.email?.trim()) return setErrorMsg("Email wajib diisi.");
+    if (!isEdit && !formData.password) return setErrorMsg("Password wajib untuk user baru.");
+
+    setSaving(true);
     try {
+      // Build Payload (Sesuai Controller createMember)
       const payload = {
-        nama: formData.nama_member,
+        nama: formData.nama,
         email: formData.email,
-        kontak: formData.kontak || undefined,
+        kontak: formData.kontak,
         jabatan: formData.jabatan,
+        // Password hanya dikirim jika diisi (untuk edit)
+        ...(formData.password && { password: formData.password })
       };
 
-      // password dikirim saat create atau bila diisi saat edit
-      if (!isEdit || (isEdit && formData.password?.trim())) {
-        payload.password = formData.password;
-      }
-
-      // hanya kirim id_leader bila pembuat bukan leader (leader assignment dilakukan server-side)
-      if (currentRole !== "leader") {
-        // Map key sesuai backend jika backend mengharapkan id_leader atau leader_id
-        if (formData.leader_id) payload.id_leader = Number(formData.leader_id);
+      // ID Leader hanya dikirim jika dipilih manual (untuk Admin/Senior)
+      // Jika yang login Leader, backend otomatis mengabaikan ini dan pakai token
+      if (formData.leader_id) {
+        // Backend kita tadi tidak secara eksplisit membaca 'leader_id' dari body untuk role selain leader
+        // Tapi jika Anda mau support admin assign leader manual, backend createMember perlu sedikit disesuaikan.
+        // TAPI: Untuk amannya, biarkan logika backend yang mengatur hierarki.
       }
 
       if (isEdit) {
-        const id = member.id_member ?? member.id;
-        await api.put(`/member/${id}`, payload);
+        const id = member.id_member || member.id;
+        await api.put(`/members/${id}`, payload); // Pastikan endpoint plural 'members'
       } else {
-        await api.post("/member", payload);
+        await api.post("/members", payload);
       }
 
       onSaved && onSaved();
       onClose && onClose();
     } catch (err) {
-      console.error("Gagal menyimpan data member:", err);
-      const serverMsg = err?.response?.data?.message || err?.response?.data || err?.message || "Terjadi kesalahan";
-      setErrorMsg(typeof serverMsg === "string" ? serverMsg : JSON.stringify(serverMsg));
+      console.error("Gagal simpan member:", err);
+      const msg = err?.response?.data?.message || err.message || "Gagal menyimpan.";
+      setErrorMsg(msg);
     } finally {
       setSaving(false);
     }
@@ -142,98 +139,65 @@ export default function MemberFormModal({ onClose, onSaved, member }) {
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
         <h3 className="text-xl font-semibold mb-4">{isEdit ? "Edit Member" : "Tambah Member"}</h3>
 
-        {errorMsg && <div className="mb-3 text-sm text-red-700 bg-red-50 p-2 rounded">{errorMsg}</div>}
+        {errorMsg && (
+          <div className="mb-4 p-2 bg-red-50 text-red-600 text-sm rounded border border-red-200">
+            {errorMsg}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* NAMA */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">Nama</label>
-            <input
-              type="text"
-              name="nama_member"
-              value={formData.nama_member}
-              onChange={handleChange}
-              required
-              className="w-full border px-3 py-2 rounded"
-            />
+            <label className="block text-sm font-medium text-gray-600">Nama Lengkap</label>
+            <input type="text" name="nama" value={formData.nama} onChange={handleChange} required
+              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
 
+          {/* EMAIL */}
           <div>
             <label className="block text-sm font-medium text-gray-600">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full border px-3 py-2 rounded"
-            />
+            <input type="email" name="email" value={formData.email} onChange={handleChange} required
+              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
 
+          {/* KONTAK */}
           <div>
-            <label className="block text-sm font-medium text-gray-600">Kontak</label>
-            <input
-              name="kontak"
-              value={formData.kontak}
-              onChange={handleChange}
-              className="w-full border px-3 py-2 rounded"
-            />
+            <label className="block text-sm font-medium text-gray-600">Kontak (WA)</label>
+            <input type="text" name="kontak" value={formData.kontak} onChange={handleChange}
+              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
 
+          {/* JABATAN */}
           <div>
             <label className="block text-sm font-medium text-gray-600">Jabatan</label>
-            <select
-              name="jabatan"
-              value={formData.jabatan}
-              onChange={handleChange}
-              className="w-full border px-3 py-2 rounded"
-            >
-              <option value="member">Member</option>
-              <option value="leader">Leader</option>
-              <option value="senior_leader">Senior Leader</option>
-            </select>
+           <input type="text" name="jabatan" value={formData.jabatan} readOnly
+              className="w-full border p-2 rounded bg-gray-100 cursor-not-allowed focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
 
-          {/* Leader select hanya tampil kalau pembuat bukan leader dan jabatan = member */}
-          {currentRole !== "leader" && formData.jabatan === "member" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-600">Leader</label>
-              <select
-                name="leader_id"
-                value={formData.leader_id ?? ""}
-                onChange={handleChange}
-                className="w-full border px-3 py-2 rounded"
-              >
-                <option value="">Tidak ada</option>
-                {leaders.map((l) => (
-                  <option key={l.id_member ?? l.id} value={l.id_member ?? l.id}>
-                    {(l.nama_member || l.nama || l.name) + " — " + (l.jabatan || l.role)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          {/* PILIH LEADER (Hanya muncul jika yang buat BUKAN Leader & BUKAN Member) */}
+          {/* Karena Leader otomatis jadi atasan, dan Member tidak bisa buat user */}
+          {/* Logic ini disederhanakan: Jika Admin/Senior mau assign manual (Opsional) */}
+          {/* Saat ini Backend createMember otomatis handle ID parent, jadi field ini bisa di-hide */}
 
+          {/* PASSWORD */}
           <div>
             <label className="block text-sm font-medium text-gray-600">
-              Password {isEdit ? "(kosongkan jika tidak ingin ubah)" : ""}
+              Password {isEdit && <span className="text-gray-400 font-normal">(Kosongkan jika tetap)</span>}
             </label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder={isEdit ? "Kosongkan jika tidak ingin ganti" : ""}
-              {...(!isEdit ? { required: true } : {})}
-              className="w-full border px-3 py-2 rounded"
+            <input type="password" name="password" value={formData.password} onChange={handleChange}
+              placeholder={isEdit ? "..." : "Minimal 6 karakter"}
+              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" 
+              required={!isEdit} 
             />
           </div>
 
+          {/* TOMBOL */}
           <div className="flex justify-end gap-3 mt-6">
-            <button type="button" onClick={onClose} disabled={saving} className="px-4 py-2 bg-gray-300 rounded-lg">
-              Batal
-            </button>
-            <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-              {saving ? "Menyimpan..." : "Simpan"}
+            <button type="button" onClick={onClose} disabled={saving}
+              className="px-4 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Batal</button>
+            <button type="submit" disabled={saving}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              {saving ? "Menyimpan..." : "Simpan Data"}
             </button>
           </div>
         </form>

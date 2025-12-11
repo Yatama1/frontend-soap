@@ -24,8 +24,8 @@ export default function AdminLayout() {
 
   const menuItems = [
     { name: "Home", path: "/admin/dashboard", icon: LayoutDashboard },
-    { name: "Member", path: "/admin/member", icon: Users },
-    { name: "Properti", path: "/admin/properti", icon: Building2 },
+    { name: "Senior", path: "/admin/senior", icon: Users },
+    { name: "Properti", path: "/admin/PropertiAdmin", icon: Building2 },
     { name: "Laporan", path: "/admin/laporan", icon: Home },
   ];
 
@@ -35,7 +35,7 @@ export default function AdminLayout() {
         <div className="p-5 flex items-center gap-3">
           
           <div>
-            <div className="font-semibold text-gray-800">GudangApp</div>
+            <div className="font-semibold text-gray-800">AdminAPP</div>
             <div className="text-xs text-gray-400">
                 <p className="text-sm text-gray-800 mt-2">
                         Selamat datang, <span className="font-semibold">{adminName}</span> 👋

@@ -8,7 +8,8 @@ import PropertiDetail from "./pages/PropertiDetail";
 /* Admin */
 import AdminDashboard from "./pages/admin/DashboardAdmin";
 import LayoutAdmin from "./layouts/AdminLayout";
-import MemberPage from "./pages/admin/MemberPage";
+import Senior from "./pages/admin/Senior";
+import PropertiAdmin from "./pages/admin/PropertiAdmin";
 
 /* Leader */
 import LeaderDashboard from "./pages/leader/DashboardLeader";
@@ -33,6 +34,7 @@ import LeaderMember from "./pages/member/LeaderMember";
 
 /* AuthProvider (AuthContext) */
 import { AuthProvider } from "./middleware/AuthProvider";
+import { i } from "framer-motion/client";
 
 export default function App() {
   return (
@@ -62,7 +64,8 @@ export default function App() {
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route element={<LayoutAdmin />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/member" element={<MemberPage />} />
+            <Route path="/admin/senior" element={<Senior />} />
+            <Route path="/admin/PropertiAdmin" element={<PropertiAdmin />} />
           </Route>
         </Route>
 
