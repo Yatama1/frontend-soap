@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/admin/DashboardAdmin";
 import LayoutAdmin from "./layouts/AdminLayout";
 import Senior from "./pages/admin/Senior";
 import PropertiAdmin from "./pages/admin/PropertiAdmin";
+import RumahAdmin from "./pages/admin/RumahAdmin";
 
 /* Leader */
 import LeaderDashboard from "./pages/leader/DashboardLeader";
@@ -66,6 +67,8 @@ export default function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/senior" element={<Senior />} />
             <Route path="/admin/PropertiAdmin" element={<PropertiAdmin />} />
+            <Route path="/admin/rumah" element={<RumahAdmin />} />
+
           </Route>
         </Route>
 

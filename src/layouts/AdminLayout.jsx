@@ -26,6 +26,7 @@ export default function AdminLayout() {
     { name: "Home", path: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Senior", path: "/admin/senior", icon: Users },
     { name: "Properti", path: "/admin/PropertiAdmin", icon: Building2 },
+    { name: "Rumah", path: "/admin/rumah", icon: Home },
     { name: "Laporan", path: "/admin/laporan", icon: Home },
   ];
 

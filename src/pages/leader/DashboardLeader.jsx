@@ -1,33 +1,61 @@
-// src/pages/leader/DashboardLeader.jsx
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom"; 
 import api from "../../api/apiClient";
-import { Users, Building2, ClipboardList, Home } from "lucide-react";
+import { 
+  Users, Building2, ClipboardList, Home, 
+  Calendar, FileText, ArrowRight, PlusCircle 
+} from "lucide-react";
 
 export default function DashboardLeader() {
-  const [stats, setStats] = useState({ memberCount: 0, projectCount: 0, surveyCount: 0, propertyCount: 0 });
-  const [leaderName, setLeaderName] = useState("");
+  const [stats, setStats] = useState({ 
+    memberCount: 0, 
+    projectCount: 0, 
+    surveyCount: 0, 
+    propertyCount: 0,
+    cabuyCount: 0
+  });
+  const [leader, setLeader] = useState({ name: "Leader", initial: "L" });
   const [loading, setLoading] = useState(true);
 
+  // --- 1. UTILS WAKTU & SAPAAN ---
+  const today = new Date().toLocaleDateString("id-ID", { 
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+  });
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 11) return "Selamat Pagi";
+    if (hour < 15) return "Selamat Siang";
+    if (hour < 18) return "Selamat Sore";
+    return "Selamat Malam";
+  };
+
+  // --- 2. FETCH DATA ---
   useEffect(() => {
+    // Ambil Nama User dari LocalStorage
     try {
       const raw = localStorage.getItem("user");
       if (raw) {
         const parsed = JSON.parse(raw);
-        const name = parsed.nama || parsed.name || parsed.nama_member || parsed.fullname || parsed.full_name;
-        setLeaderName(name || "Leader");
+        const fullName = parsed.nama || parsed.name || parsed.nama_member || parsed.fullname || "Leader";
+        setLeader({
+          name: fullName,
+          initial: fullName.charAt(0).toUpperCase()
+        });
       }
-    } catch {}
+    } catch { }
 
+    // Fetch Dashboard Stats
     let cancelled = false;
     async function fetchStats() {
       setLoading(true);
       try {
-        // ganti path jika backend anda menyediakan route berbeda
         const res = await api.get("/dashboard");
         if (!cancelled) setStats(res.data || {});
       } catch (err) {
-        console.warn("Gagal ambil dashboard:", err?.response?.status || err.message);
-        if (!cancelled) setStats({ memberCount: 0, projectCount: 0, surveyCount: 0, propertyCount: 0 });
+        console.warn("Gagal ambil dashboard:", err);
+        // Fallback agar tidak error
+        if (!cancelled) setStats({ cabuyCount: 0, projectCount: 0, surveyCount: 0, propertyCount: 0 });
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -36,42 +64,119 @@ export default function DashboardLeader() {
     return () => { cancelled = true; };
   }, []);
 
-  const cards = [
-    { title: "Leads", count: stats.cabuyCount || 0, icon: <Users size={26} />, colorClass: "bg-blue-50" },
-    { title: "Proyek", count: stats.projectCount || 0, icon: <Building2 size={26} />, colorClass: "bg-green-50" },
-    { title: "Surve", count: stats.surveyCount || 0, icon: <ClipboardList size={26} />, colorClass: "bg-yellow-50" },
-    { title: "Properti", count: stats.propertyCount || 0, icon: <Home size={26} />, colorClass: "bg-red-50" },
-  ];
-
   const fmt = (n) => Number(n || 0).toLocaleString("id-ID");
 
-  return (
-    <div className="min-h-[70vh]">
-      <header className="mb-6">
-        <h1 className="text-3xl font-extrabold text-gray-800">Dashboard Leader</h1>
-        <p className="text-sm text-gray-500 mt-1">Selamat datang kembali, <span className="font-medium">{leaderName}</span>!</p>
-      </header>
+  // Definisi Kartu Statistik
+  const cards = [
+    { title: "Total Leads", count: stats.cabuyCount, icon: <Users size={24} />, color: "text-blue-600", bg: "bg-blue-50", desc: "Leads dari tim Anda" },
+    { title: "Proyek Aktif", count: stats.projectCount, icon: <Building2 size={24} />, color: "text-indigo-600", bg: "bg-indigo-50", desc: "Proyek yang berjalan" },
+    { title: "Survey Selesai", count: stats.surveyCount, icon: <ClipboardList size={24} />, color: "text-purple-600", bg: "bg-purple-50", desc: "Kunjungan lokasi" },
+    { title: "Listing Properti", count: stats.propertyCount, icon: <Home size={24} />, color: "text-emerald-600", bg: "bg-emerald-50", desc: "Total unit tersedia" },
+  ];
 
-      {loading ? (
-        <div className="p-6 text-center text-gray-500">Memuat data...</div>
-      ) : (
-        <section className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6">
+  // Loading Screen
+  if (loading) return <div className="p-8 text-gray-500">Memuat dashboard...</div>;
+
+  return (
+    <div className="min-h-screen bg-white font-sans">
+      
+      {/* --- BAGIAN 1: TOP NAVBAR (Profil di Pojok Kanan Atas) --- */}
+      <div className="flex justify-between items-center px-8 py-5 border-b border-gray-100 bg-white sticky top-0 z-10">
+        <h2 className="text-xl font-medium text-gray-800">Dashboard Leader</h2>
+        
+        {/* Profil User (Statis tanpa dropdown ribet) */}
+       
+      </div>
+
+      <div className="p-8 max-w-7xl mx-auto">
+        
+        {/* --- BAGIAN 2: HERO SECTION (SAPAAN) --- */}
+        <div className="mb-10">
+          <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
+            <Calendar size={16} />
+            {today}
+          </div>
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                {getGreeting()}, <span className="text-blue-600">{leader.name}!</span> 👋
+              </h1>
+              <p className="text-gray-500">
+                Pantau performa tim dan kelola strategi penjualan hari ini.
+              </p>
+            </div>
+
+            {/* Tombol Laporan */}
+            <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition shadow-lg shadow-gray-200">
+              <FileText size={18} /> Unduh Laporan
+            </button>
+          </div>
+        </div>
+
+        {/* --- BAGIAN 3: STATISTIK CARDS --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {cards.map((c, i) => (
-            <div key={i} className={`flex items-center justify-between p-5 rounded-2xl shadow-sm ${c.colorClass}`}>
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-white/80 flex items-center justify-center shadow-sm">
-                  <div className="text-blue-600">{c.icon}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500">{c.title}</div>
-                  <div className="text-2xl md:text-3xl font-bold text-gray-900 mt-1">{fmt(c.count)}</div>
-                </div>
+            <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-lg transition-all">
+              <div className={`w-12 h-12 rounded-xl ${c.bg} ${c.color} flex items-center justify-center mb-4`}>
+                {c.icon}
               </div>
-              <div className="text-sm text-green-600 hidden md:block">+{Math.floor(Math.random() * 20)}%</div>
+              <h3 className="text-gray-500 text-sm font-medium mb-1">{c.title}</h3>
+              <div className="text-3xl font-bold text-gray-900 mb-2">{fmt(c.count)}</div>
+              <p className="text-xs text-gray-400 leading-relaxed">{c.desc}</p>
             </div>
           ))}
-        </section>
-      )}
+        </div>
+
+        {/* --- BAGIAN 4: AKSES CEPAT (LEADER MENU) --- */}
+        <div>
+          <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
+            ⚡ Kelola Tim
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <QuickActionCard 
+              to="/leader/members" 
+              title="Tambah Member" 
+              desc="Rekrut & kelola tim sales" 
+              icon={<PlusCircle size={20} />} 
+              color="text-blue-600 bg-blue-50" 
+            />
+            <QuickActionCard 
+              to="/leader/leads" 
+              title="Monitoring Leads" 
+              desc="Cek progres calon pembeli" 
+              icon={<Users size={20} />} 
+              color="text-indigo-600 bg-indigo-50" 
+            />
+            <QuickActionCard 
+              to="/leader/projects" 
+              title="Kelola Proyek" 
+              desc="Update listing properti" 
+              icon={<Home size={20} />} 
+              color="text-emerald-600 bg-emerald-50" 
+            />
+          </div>
+        </div>
+
+      </div>
     </div>
+  );
+}
+
+// Komponen Kartu Bawah
+function QuickActionCard({ to, title, desc, icon, color }) {
+  return (
+    <Link to={to} className="flex items-center justify-between p-5 border border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50/30 transition group">
+      <div className="flex items-center gap-4">
+        <div className={`p-3 rounded-lg ${color}`}>
+          {icon}
+        </div>
+        <div>
+          <div className="font-semibold text-gray-800">{title}</div>
+          <div className="text-xs text-gray-500 mt-0.5">{desc}</div>
+        </div>
+      </div>
+      <ArrowRight className="text-gray-300 group-hover:text-blue-500 transition" size={18} />
+    </Link>
   );
 }

@@ -1,35 +1,29 @@
-// Home.jsx updated with Tentang and Kontak sections
 import { useEffect, useState } from "react";
-import gambar1Image from "../assets/gambar1.jpg";
-import Navbar from "../components/Navbar";
 import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
+// PERBAIKAN 1: Menggunakan alias 'HomeIcon' agar tidak bentrok dengan nama fungsi 'Home'
+import { Search, MapPin, Building2, ArrowRight, Home as HomeIcon, Phone, Mail } from "lucide-react";
 
 export default function Home() {
+  const [allProperti, setAllProperti] = useState([]);
   const [properti, setProperti] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
 
-  const [members, setMembers] = useState([]);
-  const [loadingMembers, setLoadingMembers] = useState(true);
-
-  const [showModal, setShowModal] = useState(false);
-  const [selectedProperti, setSelectedProperti] = useState(null);
-  const [leadName, setLeadName] = useState("");
-  const [leadKontak, setLeadKontak] = useState("");
-  const [sending, setSending] = useState(false);
-  const [success, setSuccess] = useState(false);
-
+  /* ================= FETCH DATA ================= */
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/properti");
-        if (!response.ok) throw new Error("Gagal mengambil data properti");
-        const data = await response.json();
-        const propertiesArray = Array.isArray(data) ? data : data.data || [];
-        setProperti(propertiesArray);
+        const res = await fetch("http://localhost:5000/api/properti");
+        if (!res.ok) throw new Error("Gagal mengambil data properti");
+        const json = await res.json();
+        const list = json?.data || [];
+        setAllProperti(list);
+        setProperti(list);
       } catch (err) {
         console.error(err);
-        setError("Tidak dapat memuat data properti. Pastikan server backend berjalan.");
+        setError("Tidak dapat memuat data properti.");
       } finally {
         setLoading(false);
       }
@@ -38,217 +32,223 @@ export default function Home() {
     fetchProperties();
   }, []);
 
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/member");
-        const data = await res.json();
-        setMembers(data.data || data);
-      } catch (err) {
-        console.error("Gagal memuat member:", err);
-      } finally {
-        setLoadingMembers(false);
-      }
-    };
-
-    fetchMembers();
-  }, []);
-
-  const handleSendLead = async (e) => {
-    e.preventDefault();
-    if (!leadName || !leadKontak) return;
-
-    setSending(true);
-    try {
-      const payload = {
-        nama_cabuy: leadName,
-        kontak: leadKontak,
-        status: "Baru",
-        tanggal_follow_up: new Date(),
-        tanggal_masuk: new Date(),
-      };
-
-      const response = await fetch("http://localhost:5000/api/cabuy", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) throw new Error("Gagal mengirim data leads");
-      setSuccess(true);
-
-      setTimeout(() => {
-        const waNumber = selectedProperti?.Member?.no_hp || "628123456789";
-        window.open(
-          `https://wa.me/${waNumber}?text=Halo,%20saya%20${encodeURIComponent(
-            leadName
-          )}%20tertarik%20dengan%20properti%20${encodeURIComponent(
-            selectedProperti?.nama_properti || "ini"
-          )}`,
-          "_blank"
-        );
-        setShowModal(false);
-        setLeadName("");
-        setLeadKontak("");
-        setSuccess(false);
-      }, 1000);
-    } catch (err) {
-      console.error("❌ Error kirim leads:", err);
-      alert("Gagal mengirim data leads. Pastikan server backend berjalan.");
-    } finally {
-      setSending(false);
+  /* ================= SEARCH ================= */
+  const handleSearch = () => {
+    const q = search.toLowerCase().trim();
+    if (!q) {
+      setProperti(allProperti);
+      return;
     }
+    const filtered = allProperti.filter((p) =>
+      [p.nama_properti, p.lokasi, p.kontraktor]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+    setProperti(filtered);
   };
 
   return (
-    <section className="w-full min-h-screen bg-slate-50 flex flex-col">
+    <section className="w-full min-h-screen bg-gray-50 flex flex-col font-sans text-slate-800">
       <Navbar />
 
-      <div
-        className="relative bg-cover bg-center h-[70vh] shadow-sm"
-        style={{ backgroundImage: `url(${gambar1Image})` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 flex flex-col items-center justify-center text-center text-white px-4">
-          <p className="text-sm md:text-base uppercase tracking-[0.25em] mb-3 text-white/70">
-            SOAP • Cari Properti dengan Mudah
-          </p>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 drop-shadow-xl leading-tight">
-            Temukan Properti Impianmu
-            <span className="text-cyan-300"> 🔑</span>
+      {/* ================= HERO SECTION (PERFORMANCE OPTIMIZED) ================= */}
+      {/* Menggunakan Radial Gradient bawaan CSS yang ringan dirender oleh browser */}
+      <div className="relative bg-slate-900 text-white py-24 px-6 overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black">
+        
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          <span className="inline-block py-1 px-3 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-200 text-xs font-semibold tracking-wider uppercase mb-6">
+            Platform Informasi Properti Terpercaya
+          </span>
+
+          <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight">
+            Jelajahi Proyek <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
+              Perumahan & Hunian
+            </span>
           </h1>
-          <p className="max-w-2xl text-sm md:text-base text-white/80 mb-8">
-            Pilih rumah, apartemen, atau properti investasi sesuai kebutuhanmu.
+
+          <p className="max-w-2xl mx-auto text-slate-300 text-base md:text-lg mb-10 leading-relaxed">
+            Dapatkan informasi lengkap mengenai proyek perumahan, spesifikasi unit, 
+            dan kontraktor resmi tanpa perantara.
           </p>
 
-          <div className="bg-white/95 rounded-full p-2 w-full max-w-xl flex items-center shadow-lg">
-            <input
-              type="text"
-              placeholder="Cari rumah, apartemen, atau lokasi..."
-              className="flex-1 px-4 py-2 rounded-full outline-none text-gray-700 text-sm md:text-base"
-            />
-            <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2 rounded-full text-sm md:text-base font-semibold">
-              Search
+          {/* SEARCH BAR RINGAN (Tanpa backdrop-blur) */}
+          <div className="max-w-2xl mx-auto bg-white p-2 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                placeholder="Cari lokasi, nama proyek, atau kontraktor..."
+                className="w-full pl-12 pr-4 py-3 bg-white rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-blue-600/20"
+            >
+              Cari
             </button>
           </div>
         </div>
       </div>
 
-     {/* ✅ SECTION PROPERTI / PROYEK */}
-<div
-  id="properti"
-  className="max-w-6xl mx-auto px-4 md:px-6 py-10 md:py-14 flex-1 w-full"
->
-  <div className="flex flex-col items-center mb-8">
-    <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2 text-center">
-      Proyek Properti di Seluruh Indonesia
-    </h2>
-    <p className="text-sm md:text-base text-slate-500 text-center max-w-xl">
-      Pilih proyek perumahan, apartemen, atau kawasan yang ingin kamu lihat.
-      Di dalam setiap properti terdapat beberapa tipe rumah/unit yang bisa kamu pilih.
-    </p>
-    <div className="mt-4 h-1 w-20 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600" />
-  </div>
-
-  {loading && (
-    <p className="text-center text-gray-500 italic">Memuat data properti...</p>
-  )}
-  {error && <p className="text-center text-red-500">{error}</p>}
-  {!loading && !error && properti.length === 0 && (
-    <p className="text-center text-gray-500 italic">
-      Belum ada properti tersedia saat ini.
-    </p>
-  )}
-
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7 mt-4">
-    {properti.map((p) => (
-      <div
-        key={p.id_properti}
-        className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-200 overflow-hidden flex flex-col border border-slate-100"
-      >
-        <div className="relative">
-          <img
-            src={p.image || "/no-image.jpg"}
-            alt={p.nama_properti}
-            className="h-44 w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-          <span className="absolute top-3 left-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-slate-800 shadow-sm">
-            {p.lokasi || p.location || "Lokasi strategis"}
-          </span>
-        </div>
-
-        <div className="p-4 flex flex-col flex-1">
-          <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">
-            {p.nama_properti}
-          </h3>
-          <p className="text-xs uppercase tracking-wide text-slate-400 mt-1">
-            Proyek Properti • SOAP
-          </p>
-
-          <p className="text-sm text-slate-600 mt-2 flex-grow line-clamp-3">
-            {p.deskripsi || "Proyek perumahan dengan berbagai tipe rumah di dalamnya."}
-          </p>
-
-          {/* Range harga kalau ada, jangan terlalu kayak harga ecom */}
-          {p.range_harga || p.price ? (
-            <p className="text-cyan-700 font-semibold mt-2 text-sm">
-              Perkiraan harga mulai dari{" "}
-              <span className="font-bold">
-                {p.range_harga || p.price}
-              </span>
+      {/* ================= CONTENT SECTION ================= */}
+      <section className="max-w-7xl mx-auto px-4 md:px-6 py-16 w-full flex-1">
+        
+        {/* SECTION HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4 border-b border-gray-200 pb-6">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
+              <Building2 className="text-blue-600" /> Daftar Proyek
+            </h2>
+            <p className="text-slate-500 mt-2 text-sm md:text-base">
+              Menampilkan {properti.length} proyek properti yang tersedia.
             </p>
-          ) : null}
-
-          <div className="mt-4 flex">
-            <Link
-              to={`/properti/${p.id_properti}`}
-              className="flex-1 text-center bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-2.5 rounded-xl hover:from-blue-700 hover:to-cyan-600 text-sm font-semibold shadow-sm"
-            >
-              Lihat Rumah di Properti Ini
-            </Link>
           </div>
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
-
-
-      {/* TENTANG SECTION */}
-      <section id="tentang" className="bg-white py-14 px-6 border-t">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-slate-800 mb-4 text-center">Tentang Kami</h2>
-          <p className="text-slate-600 text-center max-w-3xl mx-auto text-sm md:text-base">
-            Sistem Otomasi Agen Properti adalah platform yang membantu agen dan calon pembeli
-            terhubung dengan mudah. Kami menyediakan listing properti dari seluruh Indonesia,
-            lengkap dengan fitur CRM, follow up otomatis, dan performa member.
-          </p>
-        </div>
-      </section>
-
-      {/* KONTAK / MEMBER */}
-      <section id="kontak" className="bg-slate-50 py-14 px-6 border-t">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-slate-800 mb-6 text-center">Kontak Agen</h2>
-
-          {loadingMembers ? (
-            <p className="text-center text-gray-500">Memuat data member...</p>
-          ) : members.length === 0 ? (
-            <p className="text-center text-gray-500">Belum ada member.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {members.map((m) => (
-                <div key={m.id_member} className="bg-white p-5 rounded-xl shadow-sm border">
-                  <p className="font-semibold text-slate-800 text-lg">{m.nama_member}</p>
-                  <p className="text-sm text-blue-600">{m.jabatan || "Member"}</p>
-                  <p className="text-sm text-slate-600 mt-2">Kontak: {m.kontak}</p>
-                  <p className="text-sm text-slate-600">Email: {m.email}</p>
-                </div>
-              ))}
-            </div>
+          
+          {search && (
+            <button 
+              onClick={() => { setSearch(""); handleSearch(); }}
+              className="text-sm text-red-500 hover:underline"
+            >
+              Hapus pencarian "{search}"
+            </button>
           )}
         </div>
+
+        {/* LOADING & ERROR STATES */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-80 bg-gray-200 rounded-2xl animate-pulse"></div>
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-20 bg-red-50 rounded-2xl border border-red-100">
+            <p className="text-red-600 font-medium">{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && properti.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+              <Search className="text-gray-400" size={32} />
+            </div>
+            <p className="text-gray-500 font-medium">Tidak ada properti yang ditemukan.</p>
+            <button onClick={() => { setSearch(""); setProperti(allProperti); }} className="mt-2 text-blue-600 font-medium hover:underline">
+              Lihat semua properti
+            </button>
+          </div>
+        )}
+
+        {/* PROPERTY GRID (CATALOG STYLE) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {properti.map((p) => (
+            <div
+              key={p.id_properti}
+              className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
+            >
+              {/* Card Header Visual - Menggunakan warna solid/gradient ringan menggantikan gambar berat */}
+              <div className="h-36 bg-slate-50 relative flex items-center justify-center border-b border-gray-50">
+                <div className="absolute inset-0 bg-gradient-to-tr from-slate-100 to-white opacity-50"></div>
+                {/* Icon Placeholder */}
+                <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-blue-600 relative z-10">
+                   <Building2 size={28} />
+                </div>
+              </div>
+
+              {/* Card Content */}
+              <div className="p-6 flex-1 flex flex-col">
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-1">
+                    {p.nama_properti}
+                  </h3>
+                  <div className="flex items-start gap-2 text-sm text-slate-500 mt-2">
+                    <MapPin size={16} className="text-orange-500 shrink-0 mt-0.5" />
+                    <span className="line-clamp-1">{p.lokasi || "Lokasi belum ditentukan"}</span>
+                  </div>
+                </div>
+
+                <p className="text-sm text-slate-600 mb-6 line-clamp-3 leading-relaxed h-16">
+                  {p.deskripsi || "Informasi detail mengenai proyek ini dapat dilihat pada halaman detail."}
+                </p>
+
+                <div className="mt-auto border-t border-gray-100 pt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg max-w-[140px]">
+                    <span className="w-2 h-2 rounded-full bg-green-500 shrink-0"></span>
+                    <span className="truncate">{p.kontraktor || "Official Partner"}</span>
+                  </div>
+                  
+                  <Link
+                    to={`/properti/${p.id_properti}`}
+                    className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    Detail <ArrowRight size={16} />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
+
+      {/* ================= FOOTER ================= */}
+      <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+          
+          {/* Brand */}
+          <div className="col-span-1 md:col-span-2">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2 mb-4">
+              {/* PERBAIKAN 2: Menggunakan alias 'HomeIcon' */}
+              <HomeIcon className="text-blue-500" /> SOAP Property
+            </h2>
+            <p className="text-sm leading-relaxed max-w-sm">
+              Platform sistem informasi properti terintegrasi. Kami menyajikan data proyek perumahan, 
+              detail unit, dan informasi kontraktor secara transparan.
+            </p>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Navigasi</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link to="/" className="hover:text-blue-400 transition">Beranda</Link></li>
+              <li><Link to="#" className="hover:text-blue-400 transition">Daftar Proyek</Link></li>
+              <li><Link to="#" className="hover:text-blue-400 transition">Tentang Kami</Link></li>
+              
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Hubungi Kami</h3>
+            <ul className="space-y-3 text-sm">
+              <li className="flex items-center gap-2">
+                <MapPin size={16} className="text-blue-500" />
+                <span>Kediri</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Phone size={16} className="text-blue-500" />
+                <span></span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Mail size={16} className="text-blue-500" />
+                <span>soap@gmail.com</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-slate-800 text-center text-xs text-slate-500">
+          &copy; {new Date().getFullYear()} SOAP Property Platform. All rights reserved.
+        </div>
+      </footer>
     </section>
   );
 }
