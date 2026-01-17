@@ -1,26 +1,26 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom"; 
+import { Link } from "react-router-dom";
 import api from "../../api/apiClient";
-import { 
-  Users, Building2, ClipboardList, Home, 
-  Calendar, FileText, ArrowRight, UserPlus, 
-  BarChart3, Briefcase 
+import {
+  Users, Building2, ClipboardList, Home,
+  Calendar, FileText, ArrowRight, UserPlus,
+  BarChart3, Briefcase
 } from "lucide-react";
 
 export default function DashboardSenior() {
-  const [stats, setStats] = useState({ 
-    leaderCount: 0, 
-    projectCount: 0, 
-    surveyCount: 0, 
-    propertiCount: 0 
+  const [stats, setStats] = useState({
+    leaderCount: 0,
+    projectCount: 0,
+    surveyCount: 0,
+    propertiCount: 0
   });
   const [seniorName, setSeniorName] = useState("Senior Leader");
   const [initial, setInitial] = useState("S");
   const [loading, setLoading] = useState(true);
 
   // --- 1. UTILS WAKTU & SAPAAN ---
-  const today = new Date().toLocaleDateString("id-ID", { 
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+  const today = new Date().toLocaleDateString("id-ID", {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
   const getGreeting = () => {
@@ -67,37 +67,37 @@ export default function DashboardSenior() {
 
   // Definisi Kartu Statistik (Disesuaikan untuk Senior)
   const cards = [
-    { 
-      title: "Total Leader", 
-      count: stats.leaderCount, 
-      icon: <Users size={24} />, 
-      color: "text-blue-600", 
-      bg: "bg-blue-50", 
-      desc: "Leader di bawah supervisi Anda" 
+    {
+      title: "Total Leader",
+      count: stats.leaderCount,
+      icon: <Users size={24} />,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+      desc: "Leader di bawah supervisi Anda"
     },
-    { 
-      title: "Proyek Aktif", 
-      count: stats.projectCount, 
-      icon: <Building2 size={24} />, 
-      color: "text-indigo-600", 
-      bg: "bg-indigo-50", 
-      desc: "Total proyek berjalan" 
+    {
+      title: "Proyek Aktif",
+      count: stats.projectCount,
+      icon: <Building2 size={24} />,
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
+      desc: "Total proyek berjalan"
     },
-    { 
-      title: "Total Survei", 
-      count: stats.surveyCount, 
-      icon: <ClipboardList size={24} />, 
-      color: "text-purple-600", 
-      bg: "bg-purple-50", 
-      desc: "Aktivitas lapangan tim" 
+    {
+      title: "Total Survei",
+      count: stats.surveyCount,
+      icon: <ClipboardList size={24} />,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+      desc: "Aktivitas lapangan tim"
     },
-    { 
-      title: "Stok Properti", 
-      count: stats.propertiCount, 
-      icon: <Home size={24} />, 
-      color: "text-emerald-600", 
-      bg: "bg-emerald-50", 
-      desc: "Unit tersedia untuk dijual" 
+    {
+      title: "Stok Properti",
+      count: stats.propertiCount,
+      icon: <Home size={24} />,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+      desc: "Unit tersedia untuk dijual"
     },
   ];
 
@@ -106,24 +106,17 @@ export default function DashboardSenior() {
 
   return (
     <div className="min-h-screen bg-white font-sans">
-      
-      {/* --- BAGIAN 1: TOP NAVBAR (Profil Pojok Kanan) --- */}
-      <div className="flex justify-between items-center px-8 py-5 border-b border-gray-100 bg-white sticky top-0 z-10">
-        <h2 className="text-xl font-medium text-gray-800">Dashboard Senior</h2>
-        
-        {/* Profil User */}
-        
-      </div>
+
 
       <div className="p-8 max-w-7xl mx-auto">
-        
+
         {/* --- BAGIAN 2: HERO SECTION --- */}
         <div className="mb-10">
           <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
             <Calendar size={16} />
             {today}
           </div>
-          
+
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -161,26 +154,26 @@ export default function DashboardSenior() {
             ⚡ Kelola Organisasi
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <QuickActionCard 
+            <QuickActionCard
               to="/senior/leader" // Sesuaikan route
-              title="Kelola Leader" 
-              desc="Tambah atau monitoring Tim Leader" 
-              icon={<UserPlus size={20} />} 
-              color="text-blue-600 bg-blue-50" 
+              title="Kelola Leader"
+              desc="Tambah atau monitoring Tim Leader"
+              icon={<UserPlus size={20} />}
+              color="text-blue-600 bg-blue-50"
             />
-            <QuickActionCard 
+            <QuickActionCard
               to="/senior/performance" // Sesuaikan route
-              title="Analisis Performa" 
-              desc="Lihat statistik penjualan tim" 
-              icon={<BarChart3 size={20} />} 
-              color="text-indigo-600 bg-indigo-50" 
+              title="Analisis Performa"
+              desc="Lihat statistik penjualan tim"
+              icon={<BarChart3 size={20} />}
+              color="text-indigo-600 bg-indigo-50"
             />
-            <QuickActionCard 
+            <QuickActionCard
               to="/senior/projects" // Sesuaikan route
-              title="Master Proyek" 
-              desc="Kelola data proyek perumahan" 
-              icon={<Briefcase size={20} />} 
-              color="text-emerald-600 bg-emerald-50" 
+              title="Master Proyek"
+              desc="Kelola data proyek perumahan"
+              icon={<Briefcase size={20} />}
+              color="text-emerald-600 bg-emerald-50"
             />
           </div>
         </div>

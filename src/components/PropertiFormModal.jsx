@@ -9,7 +9,6 @@ const baseURL = base.endsWith("/api")
 
 const api = axios.create({
   baseURL,
-  headers: { "Content-Type": "application/json" },
 });
 
 api.interceptors.request.use((config) => {
@@ -28,16 +27,17 @@ export default function PropertiFormModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  /* ✅ STATE LENGKAP (INI KUNCI UTAMA) */
+  /* ================= STATE ================= */
   const [form, setForm] = useState({
     nama_properti: "",
     deskripsi: "",
     lokasi: "",
     kontraktor: "",
-    kontak_kontraktor: "", // ✅ WAJIB ADA
-    id_member: "", // owner / senior
+    kontak_kontraktor: "",
+    id_member: "",
   });
 
+  const [image, setImage] = useState(null); // ✅ STATE GAMBAR
   const [seniorList, setSeniorList] = useState([]);
 
   /* ================= PREFILL EDIT ================= */
@@ -48,7 +48,7 @@ export default function PropertiFormModal({
         deskripsi: initialData.deskripsi || "",
         lokasi: initialData.lokasi || "",
         kontraktor: initialData.kontraktor || "",
-        kontak_kontraktor: initialData.kontak_kontraktor || "", // ✅
+        kontak_kontraktor: initialData.kontak_kontraktor || "",
         id_member:
           initialData.id_member ||
           initialData.owner_senior?.id_member ||
@@ -82,6 +82,11 @@ export default function PropertiFormModal({
     setForm((p) => ({ ...p, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) setImage(file); // ✅ SIMPAN FILE
+  };
+
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,11 +100,22 @@ export default function PropertiFormModal({
 
     setSaving(true);
     try {
+      // ✅ PAKAI FormData
+      const fd = new FormData();
+      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+
+      if (image) fd.append("image", image); // ⬅️ sesuai field DB: image
+
       if (isEdit) {
-        await api.put(`/properti/${initialData.id_properti}`, form);
+        await api.put(`/properti/${initialData.id_properti}`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       } else {
-        await api.post("/properti", form);
+        await api.post("/properti", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
       }
+
       onSaved && onSaved();
     } catch (err) {
       console.error("Properti save error:", err);
@@ -165,33 +181,13 @@ export default function PropertiFormModal({
             className="w-full border p-2 rounded"
           />
 
-          {/* OWNER / SENIOR */}
-          <div>
-            <label className="text-sm text-gray-600">Owner (Senior)</label>
-            <select
-              name="id_member"
-              value={form.id_member}
-              onChange={handleChange}
-              className="w-full border p-2 rounded"
-            >
-              <option value="">
-                -- Pilih (opsional untuk senior) --
-              </option>
-              {seniorList.map((s) => (
-                <option
-                  key={s.id_member || s.id}
-                  value={s.id_member || s.id}
-                >
-                  {s.nama || s.nama_member} ({s.email})
-                </option>
-              ))}
-            </select>
-            <small className="text-xs text-gray-400">
-              Jika admin membuat properti, pilih owner senior.
-              Jika senior login sendiri, boleh dikosongkan.
-            </small>
-          </div>
-
+          {/* ✅ INPUT GAMBAR (tanpa ubah style UI) */}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full border p-2 rounded"
+          />
           <div className="flex justify-end gap-2 pt-3">
             <button
               type="button"

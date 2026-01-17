@@ -14,12 +14,11 @@ export default function Leader() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLeader, setSelectedLeader] = useState(null);
 
-  // --- FETCH LEADERS ---
+  // --- FETCH DATA ---
   const fetchLeaders = async () => {
     setLoading(true);
     try {
       const res = await api.get("/members/leaders");
-
       // ✅ ambil dari field yang benar
       const data = res?.data?.data || [];
 
@@ -47,10 +46,11 @@ export default function Leader() {
   const handleDelete = async (id, nama) => {
     if (!window.confirm(`Hapus leader "${nama}" beserta datanya?`)) return;
     try {
-      await api.delete(`/members/leaders${id}`);
+      await api.delete(`/members/${id}`);
       setLeaders(prev => prev.filter(l => l.id !== id));
     } catch (error) {
-      alert("Gagal menghapus.", error);
+      alert("Gagal menghapus.");
+      console.log("Gagal menghapus: ", error);
     }
   };
 
