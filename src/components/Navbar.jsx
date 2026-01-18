@@ -5,14 +5,6 @@ import { useNavigate } from "react-router-dom";
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
-  };
 
   const goHomeAndScroll = (section) => {
     navigate("/");
@@ -23,7 +15,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-gradient-to-r from-cyan-400 to-orange-400 shadow-md sticky top-0 z-50">
+    <nav className="w-full shadow-md sticky top-0 z-50">
       {/* GANTI FLEX → GRID */}
       <div className="max-w-7xl mx-auto px-6 py-3 grid grid-cols-3 items-center">
 

@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom"; 
+import { Link } from "react-router-dom";
 import api from "../../api/apiClient";
-import { 
-  Users, Building2, ClipboardList, Home, 
-  Calendar, FileText, ArrowRight, PlusCircle 
+import {
+  Users, Building2, ClipboardList, Home,
+  Calendar, FileText, ArrowRight, PlusCircle
 } from "lucide-react";
 
 export default function DashboardLeader() {
-  const [stats, setStats] = useState({ 
-    memberCount: 0, 
-    projectCount: 0, 
-    surveyCount: 0, 
+  const [stats, setStats] = useState({
+    memberCount: 0,
+    projectCount: 0,
+    surveyCount: 0,
     propertyCount: 0,
     cabuyCount: 0
   });
@@ -18,8 +18,8 @@ export default function DashboardLeader() {
   const [loading, setLoading] = useState(true);
 
   // --- 1. UTILS WAKTU & SAPAAN ---
-  const today = new Date().toLocaleDateString("id-ID", { 
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+  const today = new Date().toLocaleDateString("id-ID", {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
   const getGreeting = () => {
@@ -79,24 +79,15 @@ export default function DashboardLeader() {
 
   return (
     <div className="min-h-screen bg-white font-sans">
-      
-      {/* --- BAGIAN 1: TOP NAVBAR (Profil di Pojok Kanan Atas) --- */}
-      <div className="flex justify-between items-center px-8 py-5 border-b border-gray-100 bg-white sticky top-0 z-10">
-        <h2 className="text-xl font-medium text-gray-800">Dashboard Leader</h2>
-        
-        {/* Profil User (Statis tanpa dropdown ribet) */}
-       
-      </div>
-
       <div className="p-8 max-w-7xl mx-auto">
-        
+
         {/* --- BAGIAN 2: HERO SECTION (SAPAAN) --- */}
         <div className="mb-10">
           <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
             <Calendar size={16} />
             {today}
           </div>
-          
+
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -134,26 +125,26 @@ export default function DashboardLeader() {
             ⚡ Kelola Tim
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <QuickActionCard 
-              to="/leader/members" 
-              title="Tambah Member" 
-              desc="Rekrut & kelola tim sales" 
-              icon={<PlusCircle size={20} />} 
-              color="text-blue-600 bg-blue-50" 
+            <QuickActionCard
+              to="/leader/members"
+              title="Tambah Member"
+              desc="Rekrut & kelola tim sales"
+              icon={<PlusCircle size={20} />}
+              color="text-blue-600 bg-blue-50"
             />
-            <QuickActionCard 
-              to="/leader/leads" 
-              title="Monitoring Leads" 
-              desc="Cek progres calon pembeli" 
-              icon={<Users size={20} />} 
-              color="text-indigo-600 bg-indigo-50" 
+            <QuickActionCard
+              to="/leader/leads"
+              title="Monitoring Leads"
+              desc="Cek progres calon pembeli"
+              icon={<Users size={20} />}
+              color="text-indigo-600 bg-indigo-50"
             />
-            <QuickActionCard 
-              to="/leader/projects" 
-              title="Kelola Proyek" 
-              desc="Update listing properti" 
-              icon={<Home size={20} />} 
-              color="text-emerald-600 bg-emerald-50" 
+            <QuickActionCard
+              to="/leader/projects"
+              title="Kelola Proyek"
+              desc="Update listing properti"
+              icon={<Home size={20} />}
+              color="text-emerald-600 bg-emerald-50"
             />
           </div>
         </div>

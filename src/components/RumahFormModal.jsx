@@ -8,7 +8,7 @@ const baseURL = base.endsWith("/api") ? base : `${base.replace(/\/$/, "")}/api`;
 const api = axios.create({
   baseURL,
   // PENTING: Gunakan multipart/form-data karena ada upload file (image)
-  
+
 });
 
 api.interceptors.request.use((config) => {
@@ -35,6 +35,7 @@ export default function RumahFormModal({ editData, onClose, onSaved }) {
   const [form, setForm] = useState({
     id_properti: "",
     tipe: "",
+    deskripsi: "",
     lb: "",
     lt: "",
     jml_kamar: "",
@@ -57,6 +58,7 @@ export default function RumahFormModal({ editData, onClose, onSaved }) {
       setForm({
         id_properti: editData.id_properti || "",
         tipe: editData.tipe || "",
+        deskripsi: editData.deskripsi || "",
         lb: editData.lb || "",
         lt: editData.lt || "",
         jml_kamar: editData.jml_kamar || "",
@@ -89,7 +91,7 @@ export default function RumahFormModal({ editData, onClose, onSaved }) {
     try {
       // Gunakan FormData untuk kirim file + text
       const fd = new FormData();
-      
+
       // Masukkan semua data form ke FormData
       Object.keys(form).forEach((key) => {
         // Jangan kirim image jika null (user tidak upload foto baru saat edit)
@@ -102,7 +104,7 @@ export default function RumahFormModal({ editData, onClose, onSaved }) {
 
       if (isEdit) {
         // Ambil ID yang benar (sesuaikan dengan database kamu: id_rumah atau id)
-        const id = editData.id_rumah || editData.id; 
+        const id = editData.id_rumah || editData.id;
         await api.put(`/rumah/${id}`, fd);
       } else {
         await api.post("/rumah", fd);
@@ -161,6 +163,16 @@ export default function RumahFormModal({ editData, onClose, onSaved }) {
             />
           </div>
 
+          <div>
+            <input
+              name="deskripsi"
+              value={form.deskripsi}
+              onChange={handleChange}
+              placeholder="Deskripsi"
+              className="w-full border p-2 rounded"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <input
               name="lb"
@@ -196,7 +208,7 @@ export default function RumahFormModal({ editData, onClose, onSaved }) {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-             <input
+            <input
               name="harga"
               type="number"
               value={form.harga}
@@ -204,7 +216,7 @@ export default function RumahFormModal({ editData, onClose, onSaved }) {
               placeholder="Harga (Rp)"
               className="w-full border p-2 rounded"
             />
-             <input
+            <input
               name="unit"
               type="number"
               value={form.unit}

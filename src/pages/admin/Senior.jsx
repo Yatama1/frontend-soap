@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { 
-  Users, UserPlus, Search, RefreshCw, 
-  Edit, Trash2, Phone, Mail, Shield, MoreHorizontal 
+import {
+  Users, UserPlus, Search, RefreshCw,
+  Edit, Trash2, Phone, Mail, Shield, MoreHorizontal
 } from "lucide-react";
 import api from "../../api/apiClient";
 import SeniorFormModal from "../../components/SeniorFormModal";
@@ -18,7 +18,7 @@ export default function Senior() {
   const fetchSeniors = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/members");
+      const res = await api.get("/members/senior");
       const data = res?.data?.members || [];
 
       const formatted = data
@@ -90,7 +90,7 @@ export default function Senior() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Shield className="text-purple-600 fill-purple-100" /> 
+            <Shield className="text-purple-600 fill-purple-100" />
             Senior Leaders
           </h1>
           <p className="text-gray-500 text-sm mt-1">
@@ -98,20 +98,20 @@ export default function Senior() {
           </p>
         </div>
         <div className="flex gap-3">
-            <button
+          <button
             onClick={fetchSeniors}
             className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:text-purple-600 transition-colors shadow-sm"
             title="Refresh Data"
-            >
+          >
             <RefreshCw size={20} />
-            </button>
-            <button
+          </button>
+          <button
             onClick={openAddModal}
             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-purple-600/20 transition-all active:scale-95"
-            >
-            <UserPlus size={18} /> 
+          >
+            <UserPlus size={18} />
             <span className="font-medium">Tambah Senior</span>
-            </button>
+          </button>
         </div>
       </div>
 
@@ -150,69 +150,69 @@ export default function Senior() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {filtered.map((s) => {
-                   // Generate inisial untuk avatar
-                   const initial = (s.nama || s.nama_member || "S").charAt(0).toUpperCase();
-                   
-                   return (
+                  // Generate inisial untuk avatar
+                  const initial = (s.nama || s.nama_member || "S").charAt(0).toUpperCase();
+
+                  return (
                     <tr key={s.id} className="group hover:bg-purple-50/30 transition-colors duration-200">
-                        {/* Kolom Profil */}
-                        <td className="px-6 py-4">
+                      {/* Kolom Profil */}
+                      <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 text-purple-700 font-bold text-lg flex items-center justify-center shadow-sm ring-2 ring-white">
-                                {initial}
-                            </div>
-                            <div>
-                                <p className="font-bold text-gray-900">{s.nama || s.nama_member}</p>
-                                <p className="text-xs text-purple-600 font-medium bg-purple-100 inline-block px-2 py-0.5 rounded-full mt-1">
-                                    Senior Leader
-                                </p>
-                            </div>
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 text-purple-700 font-bold text-lg flex items-center justify-center shadow-sm ring-2 ring-white">
+                            {initial}
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900">{s.nama || s.nama_member}</p>
+                            <p className="text-xs text-purple-600 font-medium bg-purple-100 inline-block px-2 py-0.5 rounded-full mt-1">
+                              Senior Leader
+                            </p>
+                          </div>
                         </div>
-                        </td>
+                      </td>
 
-                        {/* Kolom Kontak */}
-                        <td className="px-6 py-4">
+                      {/* Kolom Kontak */}
+                      <td className="px-6 py-4">
                         <div className="space-y-1.5">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Mail size={14} className="text-gray-400" />
-                                <span>{s.email}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Phone size={14} className="text-gray-400" />
-                                <span>{s.kontak || "-"}</span>
-                            </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Mail size={14} className="text-gray-400" />
+                            <span>{s.email}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Phone size={14} className="text-gray-400" />
+                            <span>{s.kontak || "-"}</span>
+                          </div>
                         </div>
-                        </td>
+                      </td>
 
-                        {/* Kolom Status (Dummy active) */}
-                        <td className="px-6 py-4">
-                            <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
-                                <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                                Aktif
-                            </span>
-                        </td>
+                      {/* Kolom Status (Dummy active) */}
+                      <td className="px-6 py-4">
+                        <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium">
+                          <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                          Aktif
+                        </span>
+                      </td>
 
-                        {/* Kolom Aksi */}
-                        <td className="px-6 py-4 text-right">
+                      {/* Kolom Aksi */}
+                      <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                            <button
+                          <button
                             onClick={() => openEditModal(s)}
                             className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
                             title="Edit Data"
-                            >
+                          >
                             <Edit size={18} />
-                            </button>
-                            <button
+                          </button>
+                          <button
                             onClick={() => handleDelete(s.id, s.nama || s.nama_member)}
                             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
                             title="Hapus Data"
-                            >
+                          >
                             <Trash2 size={18} />
-                            </button>
+                          </button>
                         </div>
-                        </td>
+                      </td>
                     </tr>
-                   );
+                  );
                 })}
               </tbody>
             </table>

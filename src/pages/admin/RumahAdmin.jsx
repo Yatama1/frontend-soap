@@ -80,21 +80,20 @@ export default function RumahAdmin() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {rumahList.map((r) => {
             const isSold = Number(r.terjual) === 1 || r.terjual === true;
-            
+
             return (
               <div
                 key={r.id_rumah}
-                className={`border rounded-xl p-5 shadow-sm transition hover:shadow-md ${
-                  isSold ? "bg-gray-50 border-gray-200" : "bg-white border-gray-200"
-                }`}
+                className={`border rounded-xl p-5 shadow-sm transition hover:shadow-md ${isSold ? "bg-gray-50 border-gray-200" : "bg-white border-gray-200"
+                  }`}
               >
-                  {/* --- TAMBAHKAN BAGIAN INI UNTUK MENAMPILKAN GAMBAR --- */}
+                {/* --- TAMBAHKAN BAGIAN INI UNTUK MENAMPILKAN GAMBAR --- */}
                 <div className="w-full h-40 bg-gray-200 rounded-lg mb-4 overflow-hidden">
                   {r.image ? (
-                    <img 
-                      src={r.image} 
-                      alt={`Tipe ${r.tipe}`} 
-                      className="w-full h-full object-cover" 
+                    <img
+                      src={r.image}
+                      alt={`Tipe ${r.tipe}`}
+                      className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -114,11 +113,10 @@ export default function RumahAdmin() {
                     </p>
                   </div>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider ${
-                      isSold
+                    className={`text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider ${isSold
                         ? "bg-red-100 text-red-700"
                         : "bg-green-100 text-green-700"
-                    }`}
+                      }`}
                   >
                     {isSold ? "Terjual" : "Tersedia"}
                   </span>
@@ -137,11 +135,11 @@ export default function RumahAdmin() {
                     <span className="font-semibold">{r.unit || 0}</span>
                   </div>
                   <div className="flex gap-2 text-xs text-gray-500 mt-1">
-                     <span>🛏 {r.jml_kamar} KT</span>
-                     <span>•</span>
-                     <span>🏢 {r.jml_lantai} LT</span>
-                     <span>•</span>
-                     <span>📐 {r.lb}/{r.lt}</span>
+                    <span>🛏 {r.jml_kamar} KT</span>
+                    <span>•</span>
+                    <span>🏢 {r.jml_lantai} LT</span>
+                    <span>•</span>
+                    <span>📐 {r.lb}/{r.lt}</span>
                   </div>
                 </div>
 
@@ -170,7 +168,7 @@ export default function RumahAdmin() {
       {isModalOpen && (
         <RumahFormModal
           // PENTING: Gunakan 'editData' agar cocok dengan komponen RumahFormModal yang kita buat sebelumnya
-          editData={editingRumah} 
+          editData={editingRumah}
           onClose={() => setIsModalOpen(false)}
           onSaved={() => {
             setIsModalOpen(false);

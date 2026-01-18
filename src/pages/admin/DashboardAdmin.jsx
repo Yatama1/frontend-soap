@@ -1,26 +1,27 @@
 // src/pages/admin/DashboardAdmin.jsx
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom"; 
+import { Link } from "react-router-dom";
 import api from "../../api/apiClient";
-import { 
-  Users, Building2, ClipboardList, Home, 
+import {
+  Users, Building2, ClipboardList, Home,
   TrendingUp, Calendar, ArrowRight, Settings,
-  ShieldCheck, FilePlus 
+  ShieldCheck, FilePlus, UserStar
 } from "lucide-react";
 
 export default function DashboardAdmin() {
-  const [stats, setStats] = useState({ 
-    senior_leaderCount: 0, 
-    rumahCount: 0, 
-    surveyCount: 0, 
-    propertiCount: 0 
+  const [stats, setStats] = useState({
+    senior_leaderCount: 0,
+    rumahCount: 0,
+    surveyCount: 0,
+    propertiCount: 0,
+    cabuyCount: 0
   });
   const [adminName, setAdminName] = useState("Admin");
   const [loading, setLoading] = useState(true);
 
   // --- UTILS: TANGGAL & WAKTU ---
-  const today = new Date().toLocaleDateString("id-ID", { 
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+  const today = new Date().toLocaleDateString("id-ID", {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
   const getGreeting = () => {
@@ -34,7 +35,7 @@ export default function DashboardAdmin() {
   useEffect(() => {
     // 1. Ambil Nama Admin dari LocalStorage
     try {
-      const raw = localStorage.getItem("user");
+      const raw = localStorage.getItem("admin");
       if (raw) {
         const parsed = JSON.parse(raw);
         // Cek berbagai kemungkinan key nama
@@ -67,37 +68,45 @@ export default function DashboardAdmin() {
 
   // Definisi Kartu Statistik
   const cards = [
-    { 
-      title: "Total Members", 
+    {
+      title: "Total Members",
       count: stats.senior_leaderCount || 0, // Sesuaikan key dari backend
-      icon: <Users size={24} />, 
-      color: "text-blue-600", 
+      icon: <Users size={24} />,
+      color: "text-blue-600",
       bg: "bg-blue-50",
       desc: "Senior Leader & Member aktif"
     },
-    { 
-      title: "Data Rumah", 
-      count: stats.rumahCount || 0, 
-      icon: <Building2 size={24} />, 
-      color: "text-green-600", 
+    {
+      title: "Properti / Area",
+      count: stats.propertiCount || 0,
+      icon: <Home size={24} />,
+      color: "text-red-600",
+      bg: "bg-red-50",
+      desc: "Listing properti tersedia"
+    },
+    {
+      title: "Data Rumah",
+      count: stats.rumahCount || 0,
+      icon: <Building2 size={24} />,
+      color: "text-green-600",
       bg: "bg-green-50",
       desc: "Unit rumah terdaftar"
     },
-    { 
-      title: "Total Survei", 
-      count: stats.surveyCount || 0, 
-      icon: <ClipboardList size={24} />, 
-      color: "text-yellow-600", 
+    {
+      title: "Total Survei",
+      count: stats.surveyCount || 0,
+      icon: <ClipboardList size={24} />,
+      color: "text-yellow-600",
       bg: "bg-yellow-50",
       desc: "Aktivitas kunjungan lokasi"
     },
-    { 
-      title: "Properti / Area", 
-      count: stats.propertiCount || 0, 
-      icon: <Home size={24} />, 
-      color: "text-red-600", 
-      bg: "bg-red-50",
-      desc: "Listing properti tersedia"
+    {
+      title: "Total Cabuy",
+      count: stats.cabuyCount || 0,
+      icon: <UserStar size={24} />,
+      color: "text-sky-600",
+      bg: "bg-sky-50",
+      desc: "Cabuy Follow Up"
     },
   ];
 
@@ -118,7 +127,7 @@ export default function DashboardAdmin() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gray-50/30 font-sans">
-      
+
       {/* HEADER */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
         <div>
@@ -132,7 +141,7 @@ export default function DashboardAdmin() {
             Panel kendali utama untuk memantau keseluruhan sistem.
           </p>
         </div>
-        
+
         {/* Tombol Pengaturan (Opsional) */}
         <button className="hidden md:flex items-center gap-2 bg-white text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 border border-gray-200 transition shadow-sm">
           <Settings size={18} /> Pengaturan Sistem
@@ -140,10 +149,10 @@ export default function DashboardAdmin() {
       </header>
 
       {/* STATS GRID */}
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-10">
         {cards.map((c, i) => (
-          <div 
-            key={i} 
+          <div
+            key={i}
             className="group bg-white p-6 rounded-2xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-xl transition-all duration-300 border border-gray-100 relative overflow-hidden"
           >
             {/* Dekorasi Background */}
@@ -175,26 +184,26 @@ export default function DashboardAdmin() {
           ⚡ Manajemen Cepat
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          
-          <QuickActionCard 
+
+          <QuickActionCard
             to="/admin/rumah" // Sesuaikan route
-            title="Kelola Rumah" 
+            title="Kelola Rumah"
             desc="Tambah atau edit rumah"
             icon={<ShieldCheck size={20} />}
             color="bg-blue-50 text-blue-600"
           />
-          
-          <QuickActionCard 
+
+          <QuickActionCard
             to="/admin/PropertiAdmin" // Sesuaikan route
-            title="Input Properti" 
+            title="Input Properti"
             desc="Tambah listing baru"
             icon={<Building2 size={20} />}
             color="bg-green-50 text-green-600"
           />
 
-          <QuickActionCard 
+          <QuickActionCard
             to="/admin/laporan" // Sesuaikan route
-            title="Buat Laporan" 
+            title="Buat Laporan"
             desc="Rekap aktivitas bulanan"
             icon={<FilePlus size={20} />}
             color="bg-purple-50 text-purple-600"
@@ -210,7 +219,7 @@ export default function DashboardAdmin() {
 // Sub-Component Kartu Menu
 function QuickActionCard({ to, title, desc, icon, color }) {
   return (
-    <Link 
+    <Link
       to={to}
       className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all group cursor-pointer"
     >
