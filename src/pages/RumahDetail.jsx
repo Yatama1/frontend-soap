@@ -113,9 +113,9 @@ export default function RumahDetail() {
             setLoading(true);
             try {
                 const [resRumah, resProperti, resAgent] = await Promise.all([
-                    fetch("http://localhost:5000/api/rumah"),
-                    fetch("http://localhost:5000/api/properti"),
-                    fetch("http://localhost:5000/api/agent"), // 🔥 ambil agent
+                    fetch(import.meta.env.VITE_API_BASE_URL + "/rumah"),
+                    fetch(import.meta.env.VITE_API_BASE_URL + "/properti"),
+                    fetch(import.meta.env.VITE_API_BASE_URL + "/agent"), // 🔥 ambil agent
                 ]);
 
                 const rumahJson = await resRumah.json();

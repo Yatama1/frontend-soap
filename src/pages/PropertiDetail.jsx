@@ -20,9 +20,9 @@ export default function PropertiDetail() {
     const fetchData = async () => {
       try {
         const [r1, r2, r3] = await Promise.all([
-          fetch("http://localhost:5000/api/properti"),
-          fetch("http://localhost:5000/api/rumah"),
-          fetch("http://localhost:5000/api/agent"),
+          fetch(import.meta.env.VITE_API_BASE_URL + "/properti"),
+          fetch(import.meta.env.VITE_API_BASE_URL + "/rumah"),
+          fetch(import.meta.env.VITE_API_BASE_URL + "/agent"),
         ]);
 
         const propertiArr = (await r1.json())?.data || [];

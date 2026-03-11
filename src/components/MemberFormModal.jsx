@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 // --- 1. KONFIGURASI AXIOS MANDIRI (Anti Error Import) ---
-const base = import.meta?.env?.VITE_API_URL || "http://localhost:5000";
+const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 const baseURL = base.endsWith("/api") ? base : `${base.replace(/\/$/, "")}/api`;
 
 const api = axios.create({
@@ -24,7 +24,7 @@ function getRoleFromToken() {
     if (!token) return null;
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => 
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c =>
       '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
     ).join(''));
     const decoded = JSON.parse(jsonPayload);
@@ -59,7 +59,7 @@ export default function MemberFormModal({ onClose, onSaved, member }) {
     // Fetch daftar member yang jabatannya 'leader'
     // Endpoint ini mungkin perlu disesuaikan dengan backend Anda (misal: /members?jabatan=leader)
     // Atau jika backend getMembers sudah otomatis filter, biarkan.
-    api.get("/members") 
+    api.get("/members")
       .then((res) => {
         const data = res?.data?.members || res?.data || [];
         // Filter hanya yang jabatannya leader
@@ -170,7 +170,7 @@ export default function MemberFormModal({ onClose, onSaved, member }) {
           {/* JABATAN */}
           <div>
             <label className="block text-sm font-medium text-gray-600">Jabatan</label>
-           <input type="text" name="jabatan" value={formData.jabatan} readOnly
+            <input type="text" name="jabatan" value={formData.jabatan} readOnly
               className="w-full border p-2 rounded bg-gray-100 cursor-not-allowed focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
 
@@ -186,8 +186,8 @@ export default function MemberFormModal({ onClose, onSaved, member }) {
             </label>
             <input type="password" name="password" value={formData.password} onChange={handleChange}
               placeholder={isEdit ? "..." : "Minimal 6 karakter"}
-              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" 
-              required={!isEdit} 
+              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+              required={!isEdit}
             />
           </div>
 

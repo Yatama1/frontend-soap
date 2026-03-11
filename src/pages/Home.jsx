@@ -100,30 +100,51 @@ export default function Home() {
 
   const [totalRumah, setTotalRumah] = useState(0);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   /* ================= FETCH DATA ================= */
+  console.log("ENV:", import.meta.env.VITE_API_BASE_URL);
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 🔹 ambil properti
-        const res = await fetch("http://localhost:5000/api/properti");
-        const json = await res.json();
-        const list = json?.data || [];
-        setAllProperti(list);
-        setProperti(list);
+        if (!API_BASE_URL) {
+          throw new Error("VITE_API_BASE_URL tidak terbaca!");
+        }
 
-        // 🔹 ambil rumah untuk badge
-        const rumahRes = await fetch("http://localhost:5000/api/rumah");
+        /* ================= FETCH PROPERTI ================= */
+        const propertiRes = await fetch(`${API_BASE_URL}/properti`);
+
+        if (!propertiRes.ok) {
+          throw new Error("Gagal mengambil data properti");
+        }
+
+        const propertiJson = await propertiRes.json();
+        const propertiList = propertiJson?.data || [];
+
+        setAllProperti(propertiList);
+        setProperti(propertiList);
+
+        /* ================= FETCH RUMAH ================= */
+        const rumahRes = await fetch(`${API_BASE_URL}/rumah`);
+
+        if (!rumahRes.ok) {
+          throw new Error("Gagal mengambil data rumah");
+        }
+
         const rumahJson = await rumahRes.json();
         const rumahList = rumahJson?.data || rumahJson?.rumah || [];
+
         setTotalRumah(rumahList.length);
+
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
-  }, []);
+  }, [API_BASE_URL]);
 
   /* ================= SEARCH ================= */
   const handleSearch = () => {

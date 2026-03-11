@@ -4,7 +4,7 @@ import axios from "axios";
 import NotificationModal from "./NotificationModal"; // Pastikan file ini ada satu folder dengan file ini
 
 // --- 1. KONFIGURASI API MANDIRI (Supaya tidak error import) ---
-const base = import.meta?.env?.VITE_API_URL || "http://localhost:5000";
+const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 const baseURL = base.endsWith("/api") ? base : `${base.replace(/\/$/, "")}/api`;
 
 const api = axios.create({
@@ -23,11 +23,11 @@ function getIdFromToken() {
   try {
     const token = localStorage.getItem("token");
     if (!token) return null;
-    
+
     // Decode Token JWT
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => 
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c =>
       '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
     ).join(''));
 
@@ -65,7 +65,7 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
         const id = p.id_member || p.id || p.user?.id || p.user?.id_member;
         if (id) return id;
       }
-    } catch {}
+    } catch { /** */ }
     // Kalau gagal, ambil paksa dari token
     return getIdFromToken();
   })();
@@ -168,10 +168,10 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase">Nama Calon Pembeli</label>
-              <input 
-                name="nama_cabuy" 
-                value={formData.nama_cabuy} 
-                onChange={handleChange} 
+              <input
+                name="nama_cabuy"
+                value={formData.nama_cabuy}
+                onChange={handleChange}
                 className="w-full border p-2 rounded mt-1"
                 placeholder="Contoh: Bpk. Sinar"
               />
@@ -179,10 +179,10 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
 
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase">No. WhatsApp</label>
-              <input 
-                name="kontak" 
-                value={formData.kontak} 
-                onChange={handleChange} 
+              <input
+                name="kontak"
+                value={formData.kontak}
+                onChange={handleChange}
                 className="w-full border p-2 rounded mt-1"
                 placeholder="08xxxxxxxx"
               />
@@ -191,11 +191,11 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase">Tgl Masuk</label>
-                <input type="date" name="tanggal_masuk" value={formData.tanggal_masuk} onChange={handleChange} className="w-full border p-2 rounded mt-1"/>
+                <input type="date" name="tanggal_masuk" value={formData.tanggal_masuk} onChange={handleChange} className="w-full border p-2 rounded mt-1" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase">Jadwal Follow Up</label>
-                <input type="date" name="tanggal_follow_up" value={formData.tanggal_follow_up} onChange={handleChange} className="w-full border p-2 rounded mt-1"/>
+                <input type="date" name="tanggal_follow_up" value={formData.tanggal_follow_up} onChange={handleChange} className="w-full border p-2 rounded mt-1" />
               </div>
             </div>
 
@@ -220,12 +220,12 @@ export default function LeadsFormModal({ onClose, onSaved, cabuy }) {
           </form>
         </div>
       </div>
-      
-      <NotificationModal 
-        show={notif.show} 
-        message={notif.message} 
-        type={notif.type} 
-        onClose={() => setNotif({...notif, show: false})} 
+
+      <NotificationModal
+        show={notif.show}
+        message={notif.message}
+        type={notif.type}
+        onClose={() => setNotif({ ...notif, show: false })}
       />
     </>
   );
