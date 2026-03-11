@@ -253,8 +253,8 @@ export default function PropertiAdmin() {
                         >
                           <div
                             className={`absolute top-0 right-0 px-3 py-1 rounded-bl-xl text-[10px] font-bold uppercase tracking-wider ${isSold
-                                ? "bg-gray-200 text-gray-600"
-                                : "bg-green-100 text-green-700"
+                              ? "bg-gray-200 text-gray-600"
+                              : "bg-green-100 text-green-700"
                               }`}
                           >
                             {isSold ? "Terjual" : "Tersedia"}

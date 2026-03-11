@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 // --- 1. KONFIGURASI AXIOS MANDIRI ---
-const base = import.meta?.env?.VITE_API_URL || "http://localhost:5000";
+const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 const baseURL = base.endsWith("/api") ? base : `${base.replace(/\/$/, "")}/api`;
 
 const api = axios.create({
@@ -130,8 +130,8 @@ export default function LeaderFormModal({ onClose, onSaved, leaderData }) {
             </label>
             <input type="password" name="password" value={formData.password} onChange={handleChange}
               placeholder={isEdit ? "..." : "Minimal 6 karakter"}
-              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" 
-              required={!isEdit} 
+              className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+              required={!isEdit}
             />
           </div>
 
